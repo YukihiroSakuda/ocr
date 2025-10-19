@@ -21,19 +21,23 @@ const ToggleRow = ({
   checked: boolean;
   onChange: (value: boolean) => void;
 }) => (
-  <label className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-primary)] shadow-sm">
+  <label className="group flex items-center justify-between gap-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-4 text-sm text-[var(--text-primary)] shadow-[0_18px_40px_-26px_rgba(15,23,42,0.65)] transition hover:border-[var(--control-border)] hover:bg-[var(--surface-raised)]">
     <span className="flex flex-col">
-      <span className="font-medium">{label}</span>
+      <span className="text-sm font-semibold tracking-wide">{label}</span>
       {description ? (
         <span className="text-xs text-[var(--text-muted)]">{description}</span>
       ) : null}
     </span>
-    <input
-      type="checkbox"
-      checked={checked}
-      onChange={(event) => onChange(event.target.checked)}
-      className="h-4 w-4 accent-[var(--accent-soft)]"
-    />
+    <span className="relative inline-flex h-6 w-11 items-center justify-center">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+        className="peer absolute inset-0 h-full w-full cursor-pointer opacity-0"
+      />
+      <span className="absolute inset-0 rounded-full bg-[var(--border)] transition peer-checked:bg-sky-500/50 peer-hover:bg-[var(--control-border)]" />
+      <span className="absolute left-1 h-4 w-4 rounded-full bg-[var(--surface-raised)] shadow-[0_6px_15px_rgba(15,23,42,0.35)] transition peer-checked:translate-x-5 peer-checked:bg-white" />
+    </span>
   </label>
 );
 
@@ -63,10 +67,15 @@ export const SettingsSheet = ({
         onClick={onClose}
         aria-hidden="true"
       />
-      <section className="relative ml-auto flex h-full w-full max-w-lg flex-col border-l border-[var(--border-strong)] bg-[var(--surface)] text-sm text-[var(--text-primary)] shadow-2xl backdrop-blur-2xl">
-        <header className="flex items-center justify-between border-b border-[var(--border)] px-5 py-4">
+      <section className="relative ml-auto flex h-full w-full max-w-xl flex-col border-l border-[var(--border-strong)] bg-[var(--surface-raised)] text-sm text-[var(--text-primary)] shadow-[0_35px_65px_-30px_rgba(8,11,24,0.65)] backdrop-blur-2xl">
+        <header className="flex items-center justify-between border-b border-[var(--border)] px-6 py-5">
           <div>
-            <h2 className="text-base font-semibold">Control Center</h2>
+            <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-soft)]">
+              System preferences
+            </p>
+            <h2 className="text-lg font-semibold tracking-tight text-[var(--text-primary)]">
+              Control Center
+            </h2>
             <p className="text-xs text-[var(--text-muted)]">
               Tune automation and normalization preferences.
             </p>
@@ -74,14 +83,27 @@ export const SettingsSheet = ({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex items-center gap-1 rounded-lg border border-[var(--control-border)] bg-[var(--control-surface)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--text-secondary)] transition hover:bg-[var(--control-surface-hover)] hover:text-[var(--text-primary)]"
+            className="rounded-xl border border-[var(--control-border)] bg-[var(--control-surface)] p-2 text-[var(--text-secondary)] transition hover:bg-[var(--control-surface-hover)] hover:text-[var(--text-primary)]"
+            aria-label="Close settings"
           >
-            Close
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-4 w-4"
+            >
+              <line x1="18" x2="6" y1="6" y2="18" />
+              <line x1="6" x2="18" y1="6" y2="18" />
+            </svg>
           </button>
         </header>
-        <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
+        <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5 [scrollbar-width:thin]">
           {!settings ? (
-            <p className="text-[var(--text-secondary)]">Loading settings…</p>
+            <p className="text-[var(--text-secondary)]">Loading settings...</p>
           ) : (
             <>
               <ToggleRow
@@ -136,8 +158,8 @@ export const SettingsSheet = ({
                 }
               />
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+              <div className="space-y-2 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-4 shadow-[0_18px_40px_-26px_rgba(15,23,42,0.55)]">
+                <label className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--text-muted)]">
                   History limit
                 </label>
                 <input
@@ -157,8 +179,8 @@ export const SettingsSheet = ({
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+              <div className="space-y-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-4 shadow-[0_18px_40px_-26px_rgba(15,23,42,0.55)]">
+                <label className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--text-muted)]">
                   Theme
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -171,7 +193,7 @@ export const SettingsSheet = ({
                         onClick={() => onUpdate({ theme: mode })}
                         className={`rounded-lg border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide transition ${
                           isActive
-                            ? "border-[var(--control-border)] bg-[var(--control-surface)] text-[var(--text-primary)]"
+                            ? "border-[var(--control-border)] bg-[var(--control-surface)] text-[var(--text-primary)] shadow-[0_10px_20px_-18px_rgba(56,189,248,0.6)]"
                             : "border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--control-border)] hover:text-[var(--text-primary)]"
                         }`}
                       >

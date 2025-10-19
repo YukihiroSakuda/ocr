@@ -131,7 +131,7 @@ function HomePage() {
   return (
     <>
       <main className="flex min-h-screen flex-col items-center overflow-hidden px-4 py-4 text-[var(--text-primary)] transition-colors">
-        <div className="flex w-full max-w-6xl flex-1 flex-col gap-4 overflow-hidden">
+        <div className="flex w-full max-w-6xl flex-1 min-h-0 flex-col gap-4 overflow-hidden">
           <header
             className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--border-strong)] bg-[var(--surface-raised)] px-5 py-4 backdrop-blur-2xl"
             style={{ boxShadow: "var(--shadow)" }}

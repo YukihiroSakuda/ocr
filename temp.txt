@@ -51,10 +51,10 @@ export const ImagePreview = ({
 
   return (
     <div
-      className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] text-sm text-[var(--text-primary)] backdrop-blur-xl md:min-h-[360px]"
+      className="flex h-[340px] w-full flex-col overflow-hidden rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] text-sm text-[var(--text-primary)] backdrop-blur-xl md:h-[420px]"
       style={{ boxShadow: "var(--shadow)" }}
     >
-      <div className="flex min-h-[56px] flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] px-4 py-2 text-[var(--text-secondary)]">
+      <div className="flex min-h-[48px] items-center justify-between gap-3 border-b border-[var(--border)] px-4 py-3 text-[var(--text-secondary)]">
         <span className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--text-secondary)]">
           Input Image
         </span>
@@ -63,14 +63,14 @@ export const ImagePreview = ({
             <button
               type="button"
               onClick={() => setShowProcessed((prev) => !prev)}
-              className="inline-flex h-9 items-center gap-2 rounded-xl border border-[var(--control-border)] bg-[var(--control-surface)] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text-secondary)] transition hover:bg-[var(--control-surface-hover)] hover:text-[var(--text-primary)]"
+              className="inline-flex items-center gap-2 rounded-xl border border-[var(--control-border)] bg-[var(--control-surface)] px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-[var(--text-secondary)] transition hover:bg-[var(--control-surface-hover)] hover:text-[var(--text-primary)]"
               aria-pressed={showProcessed}
             >
               <Wand2 size={16} />
               {showProcessed ? "Processed" : "Original"}
             </button>
           )}
-          <div className="flex items-center gap-2 rounded-xl border border-[var(--input-border)] bg-[var(--input-surface)] px-3 py-1 text-[var(--text-secondary)]">
+          <div className="flex items-center gap-2 rounded-xl border border-[var(--input-border)] bg-[var(--input-surface)] px-3 py-2 text-[var(--text-secondary)]">
             <button
               type="button"
               onClick={() => handleZoom(-ZOOM_STEP)}
@@ -117,9 +117,9 @@ export const ImagePreview = ({
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-start gap-1 text-left text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
-            <p>NO IMAGE AVAILABLE.</p>
-            <p>PRESS &quot;CLIPBOARD&quot; OR &quot;SELECT FILE&quot; TO LOAD ONE.</p>
+          <div className="flex flex-col items-center gap-1 text-center text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
+            <p>No visual source linked.</p>
+            <p>Deploy the controls below to ingest an image.</p>
           </div>
         )}
         {isProcessing && (
@@ -134,3 +134,4 @@ export const ImagePreview = ({
     </div>
   );
 };
+

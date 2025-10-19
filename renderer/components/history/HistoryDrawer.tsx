@@ -47,17 +47,18 @@ export const HistoryDrawer = ({
   return (
     <div className="fixed inset-0 z-40 flex">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
-      <aside className="relative ml-auto flex h-full w-full max-w-sm flex-col border-l border-gray-200 bg-white text-sm dark:border-gray-700 dark:bg-gray-900">
-        <header className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
+      <aside className="relative ml-auto flex h-full w-full max-w-xl flex-col border-l border-[var(--border-strong)] bg-[var(--surface-raised)] text-sm text-[var(--text-primary)] shadow-[0_35px_65px_-30px_rgba(8,11,24,0.65)] backdrop-blur-2xl">
+        <header className="flex items-center justify-between border-b border-[var(--border)] px-6 py-5">
           <div>
-            <h2 className="text-base font-semibold">OCR History</h2>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Stores up to 200 recent results.</p>
+            <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-soft)]">Timeline</p>
+            <h2 className="text-lg font-semibold tracking-tight text-[var(--text-primary)]">OCR History</h2>
+            <p className="text-xs text-[var(--text-muted)]">Stores up to 200 recent captures for quick recall.</p>
           </div>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={onClear}
-              className="inline-flex items-center gap-1 rounded-md border border-gray-300 px-2 py-1 text-xs text-gray-600 hover:border-gray-400 dark:border-gray-600 dark:text-gray-200"
+              className="inline-flex items-center gap-2 rounded-xl border border-[var(--control-border)] bg-[var(--control-surface)] px-3.5 py-2 text-[11px] font-semibold uppercase tracking-wide text-[var(--text-secondary)] transition hover:bg-[var(--control-surface-hover)] hover:text-[var(--text-primary)]"
             >
               <Trash2 size={14} />
               Clear All
@@ -65,46 +66,51 @@ export const HistoryDrawer = ({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md border border-gray-300 p-1 text-gray-500 hover:border-gray-400 hover:text-gray-700 dark:border-gray-600 dark:text-gray-300"
+              className="rounded-xl border border-[var(--control-border)] bg-[var(--control-surface)] p-2 text-[var(--text-secondary)] transition hover:bg-[var(--control-surface-hover)] hover:text-[var(--text-primary)]"
               aria-label="Close history"
             >
               <X size={16} />
             </button>
           </div>
         </header>
-        <div className="flex-1 overflow-y-auto px-4 py-3">
+        <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5 [scrollbar-width:thin]">
           {isLoading ? (
-            <p className="text-gray-500 dark:text-gray-400">Loading…</p>
+            <p className="text-[var(--text-secondary)]">Loading history...</p>
           ) : history.length === 0 ? (
-            <p className="text-gray-500 dark:text-gray-400">No history yet.</p>
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-6 text-xs uppercase tracking-[0.2em] text-[var(--text-muted)] shadow-[0_18px_40px_-26px_rgba(15,23,42,0.55)]">
+              No entries captured yet.
+            </div>
           ) : (
             <ul className="space-y-3">
               {history.map((entry) => (
-                <li key={entry.id} className="rounded-md border border-gray-200 dark:border-gray-700">
+                <li
+                  key={entry.id}
+                  className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[0_18px_40px_-26px_rgba(15,23,42,0.55)] transition hover:border-[var(--control-border)]"
+                >
                   <div className="flex flex-col">
                     <button
                       type="button"
                       onClick={() => onSelect(entry)}
-                      className="flex flex-col gap-2 px-3 py-2 text-left"
+                      className="flex flex-col gap-2 px-4 py-3 text-left"
                     >
-                      <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                      <div className="flex items-center justify-between text-[11px] uppercase tracking-wide text-[var(--text-muted)]">
                         <span className="inline-flex items-center gap-1">
                           <Clock3 size={12} />
                           {formatDate(entry.createdAt)}
                         </span>
                         <span className="inline-flex items-center gap-1">
                           <FileText size={12} />
-                          Confidence {entry.confidence ? Math.round(entry.confidence) : '--'}%
+                          Confidence {entry.confidence ? Math.round(entry.confidence) : "--"}%
                         </span>
                       </div>
-                      <p className="line-clamp-3 text-sm text-gray-700 dark:text-gray-200">{entry.textResult}</p>
+                      <p className="line-clamp-3 text-sm text-[var(--text-primary)]">{entry.textResult}</p>
                     </button>
-                    <div className="flex items-center justify-between border-t border-gray-200 px-3 py-2 text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400">
-                      <span>{entry.lang}</span>
+                    <div className="flex items-center justify-between border-t border-[var(--border)] px-4 py-2 text-xs text-[var(--text-secondary)]">
+                      <span className="uppercase tracking-[0.18em] text-[var(--text-muted)]">{entry.lang}</span>
                       <button
                         type="button"
                         onClick={() => onDelete(entry.id)}
-                        className="rounded border border-transparent px-2 py-1 hover:border-red-400 hover:text-red-500 dark:hover:border-red-700 dark:hover:text-red-400"
+                        className="rounded-lg border border-transparent px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text-secondary)] transition hover:border-red-500/50 hover:text-red-400"
                       >
                         Remove
                       </button>
@@ -115,7 +121,7 @@ export const HistoryDrawer = ({
             </ul>
           )}
         </div>
-        <footer className="border-t border-gray-200 px-4 py-3 text-right text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400">
+        <footer className="border-t border-[var(--border)] px-6 py-4 text-right text-xs uppercase tracking-[0.18em] text-[var(--text-muted)]">
           {history.length} saved entries
         </footer>
       </aside>
