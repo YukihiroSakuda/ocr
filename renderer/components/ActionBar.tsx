@@ -25,7 +25,7 @@ const ActionButton = ({
     type="button"
     onClick={onClick}
     disabled={disabled}
-    className="flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs text-gray-700 transition hover:border-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:hover:border-gray-600 dark:hover:bg-gray-700"
+    className="group inline-flex items-center gap-1.5 rounded-lg border border-[var(--control-border)] bg-[var(--control-surface)] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--text-secondary)] transition hover:bg-[var(--control-surface-hover)] hover:text-[var(--text-primary)] disabled:cursor-not-allowed disabled:border-transparent disabled:bg-transparent disabled:text-[var(--control-disabled)]"
   >
     {icon}
     <span>{label}</span>
@@ -39,8 +39,11 @@ export const ActionBar = ({
   onSettings,
   isProcessing,
 }: ActionBarProps) => (
-  <section className="w-full shrink-0 space-y-2 rounded-md border border-gray-200 bg-white p-3 text-xs dark:border-gray-700 dark:bg-gray-800">
-    <div className="flex flex-wrap gap-2">
+  <section
+    className="w-full shrink-0 space-y-2.5 rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-3 text-xs text-[var(--text-secondary)] backdrop-blur-xl"
+    style={{ boxShadow: "var(--shadow)" }}
+  >
+    <div className="flex flex-wrap items-center gap-1.5">
       <ActionButton
         icon={<ClipboardPaste size={16} />}
         label="Clipboard"

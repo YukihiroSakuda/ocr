@@ -68,12 +68,18 @@ export const LanguageOverlay = ({
         onClick={onClose}
         aria-hidden="true"
       />
-      <section className="relative z-10 w-full max-w-lg rounded-lg border border-gray-200 bg-white p-6 text-sm shadow-xl dark:border-gray-700 dark:bg-gray-900">
+      <section className="relative z-10 w-full max-w-3xl rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] p-6 text-sm text-[var(--text-primary)] shadow-2xl backdrop-blur-2xl">
         <header className="mb-4 space-y-1">
-          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+          <h2 className="text-base font-semibold text-[var(--text-primary)]">
             Language Preferences
           </h2>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <p
+            className={`text-xs transition ${
+              selection.length
+                ? "text-[var(--control-surface)]"
+                : "text-[var(--text-muted)]"
+            }`}
+          >
             Select all languages you need for OCR.
           </p>
         </header>
@@ -88,10 +94,10 @@ export const LanguageOverlay = ({
                   type="button"
                   onClick={() => toggleLanguage(option.code)}
                   aria-pressed={isSelected}
-                  className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+                  className={`rounded-2xl border px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-wide transition ${
                     isSelected
-                      ? "bg-blue-600 text-white shadow-sm dark:bg-blue-500"
-                      : "border border-gray-300 text-gray-600 hover:border-gray-400 dark:border-gray-600 dark:text-gray-200"
+                      ? "border-[var(--control-border)] bg-[var(--accent-soft)] text-[var(--surface-raised)] shadow-[0_0_0_1px_rgba(56,189,248,0.35)]"
+                      : "border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--control-border)] hover:text-[var(--text-primary)]"
                   }`}
                 >
                   {option.label}
@@ -99,7 +105,7 @@ export const LanguageOverlay = ({
               );
             })}
           </div>
-          <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs text-[var(--text-secondary)]">
             {selectedLabels.length ? selectedLabels.join(", ") : "No languages selected."}
           </div>
         </div>
@@ -108,7 +114,7 @@ export const LanguageOverlay = ({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-1.5 text-xs text-gray-600 transition hover:border-gray-400 hover:text-gray-700 dark:border-gray-600 dark:text-gray-200"
+            className="inline-flex items-center gap-1 rounded-lg border border-[var(--control-border)] bg-[var(--control-surface)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--text-secondary)] transition hover:bg-[var(--control-surface-hover)] hover:text-[var(--text-primary)]"
           >
             <X size={14} />
             Cancel
@@ -117,7 +123,7 @@ export const LanguageOverlay = ({
             type="button"
             onClick={handleSave}
             disabled={!selection.length || isSaving}
-            className="inline-flex items-center gap-1 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition enabled:hover:bg-blue-500 disabled:opacity-60 dark:bg-blue-500 dark:enabled:hover:bg-blue-400"
+            className="inline-flex items-center gap-1 rounded-lg border border-[var(--control-border)] bg-[var(--control-surface)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--text-primary)] transition hover:bg-[var(--control-surface-hover)] disabled:cursor-not-allowed disabled:border-transparent disabled:bg-transparent disabled:text-[var(--control-disabled)]"
           >
             {isSaving ? (
               <>

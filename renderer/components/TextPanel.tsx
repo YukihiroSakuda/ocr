@@ -5,6 +5,7 @@ import { Copy, Loader2, RefreshCw } from "lucide-react";
 
 interface TextPanelProps {
   text: string;
+  confidence: number | null;
   isProcessing: boolean;
   onChangeText: (value: string) => void;
   onCopy: () => void;
@@ -14,6 +15,7 @@ interface TextPanelProps {
 
 export const TextPanel = ({
   text,
+  confidence,
   isProcessing,
   onChangeText,
   onCopy,
@@ -29,24 +31,40 @@ export const TextPanel = ({
     onChangeText(event.target.value);
   };
 
+  const formattedConfidence =
+    confidence === null || Number.isNaN(confidence)
+      ? "---"
+      : `${Math.round(confidence)}%`;
+
   return (
-    <div className="flex h-full min-h-[260px] w-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white text-sm dark:border-gray-700 dark:bg-gray-800 md:min-h-0">
-      <div className="flex min-h-[44px] flex-wrap items-center justify-between gap-2 border-b border-gray-200 px-3 py-1.5 text-gray-600 dark:border-gray-700 dark:text-gray-300">
-        <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-          OCR Result
-        </span>
-        <div className="flex items-center gap-1.5">
+    <div
+      className="flex h-full min-h-[320px] w-full flex-col overflow-hidden rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] text-sm text-[var(--text-primary)] backdrop-blur-xl md:min-h-[420px]"
+      style={{ boxShadow: "var(--shadow)" }}
+    >
+      <div className="flex min-h-[48px] flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] px-4 py-3 text-[var(--text-secondary)]">
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--text-secondary)]">
+            OCR Output
+          </span>
+          <span className="inline-flex items-center gap-2 rounded-full border border-[var(--control-border)] bg-[var(--control-surface)] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+            <span className="text-[var(--text-muted)]">Confidence</span>
+            <span className="text-[var(--text-primary)]">
+              {formattedConfidence}
+            </span>
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={onRerun}
             disabled={isProcessing}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-600 transition hover:border-gray-400 hover:text-gray-800 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:border-gray-500"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--control-border)] bg-[var(--control-surface)] text-[var(--text-secondary)] transition hover:bg-[var(--control-surface-hover)] hover:text-[var(--text-primary)] disabled:cursor-not-allowed disabled:border-transparent disabled:bg-transparent disabled:text-[var(--control-disabled)]"
             title="Re-run OCR"
           >
             {isProcessing ? (
-              <Loader2 size={16} className="animate-spin" />
+              <Loader2 size={18} className="animate-spin" />
             ) : (
-              <RefreshCw size={16} />
+              <RefreshCw size={18} />
             )}
             <span className="sr-only">Re-run OCR</span>
           </button>
@@ -54,26 +72,26 @@ export const TextPanel = ({
             type="button"
             onClick={onCopy}
             disabled={!canCopy}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-600 transition hover:border-gray-400 hover:text-gray-800 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:border-gray-500"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--control-border)] bg-[var(--control-surface)] text-[var(--text-secondary)] transition hover:bg-[var(--control-surface-hover)] hover:text-[var(--text-primary)] disabled:cursor-not-allowed disabled:border-transparent disabled:bg-transparent disabled:text-[var(--control-disabled)]"
             title="Copy text"
           >
-            <Copy size={16} />
+            <Copy size={18} />
             <span className="sr-only">Copy recognized text</span>
           </button>
         </div>
       </div>
       <div className="flex flex-1 flex-col overflow-hidden">
-        <div className="flex-1 px-3 py-3">
+        <div className="flex-1 overflow-hidden">
           <textarea
             value={text}
             onChange={handleChange}
-            placeholder={isProcessing ? "Running OCR…" : "OCR not run yet."}
-            className="h-full w-full resize-none rounded-md border border-gray-200 bg-white p-3 font-sans text-sm leading-relaxed text-gray-800 outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-blue-400/40 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:focus:border-gray-500"
+            placeholder={isProcessing ? "Running OCR..." : "OCR not run yet. Paste or type text here."}
+            className="h-full w-full resize-none border-0 bg-[var(--input-surface)] px-4 py-4 font-sans text-base leading-relaxed text-[var(--text-primary)] outline-none transition focus:ring-2 focus:ring-sky-400/40 focus:ring-offset-0 placeholder:text-[var(--text-muted)] md:px-6 md:py-6"
             spellCheck={false}
           />
         </div>
-        <div className="border-t border-gray-200 px-3 py-2 text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400">
-          {lines.length} lines / {text.length} characters
+        <div className="border-t border-[var(--border)] px-4 py-3 text-xs uppercase tracking-wide text-[var(--text-secondary)]">
+          {lines.length} Lines | {text.length} Characters
         </div>
       </div>
     </div>

@@ -50,52 +50,57 @@ export const ImagePreview = ({
   const resetZoom = () => setZoom(1);
 
   return (
-    <div className="flex h-full min-h-[260px] w-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white text-sm dark:border-gray-700 dark:bg-gray-800 md:min-h-0">
-      <div className="flex min-h-[44px] items-center justify-between border-b border-gray-200 px-3 py-1.5 text-gray-600 dark:border-gray-700 dark:text-gray-300">
-        <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-          Input Image
+    <div
+      className="flex h-full min-h-[320px] w-full flex-col overflow-hidden rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] text-sm text-[var(--text-primary)] backdrop-blur-xl md:min-h-[420px]"
+      style={{ boxShadow: "var(--shadow)" }}
+    >
+      <div className="flex min-h-[48px] items-center justify-between gap-3 border-b border-[var(--border)] px-4 py-3 text-[var(--text-secondary)]">
+        <span className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--text-secondary)]">
+          Input Feed
         </span>
         <div className="flex items-center gap-2">
           {processedImage && (
             <button
               type="button"
               onClick={() => setShowProcessed((prev) => !prev)}
-              className="inline-flex items-center gap-1 rounded-md border border-gray-300 px-2 py-1 text-xs text-gray-600 transition hover:border-gray-400 dark:border-gray-600 dark:text-gray-200 dark:hover:border-gray-500"
+              className="inline-flex items-center gap-2 rounded-xl border border-[var(--control-border)] bg-[var(--control-surface)] px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-[var(--text-secondary)] transition hover:bg-[var(--control-surface-hover)] hover:text-[var(--text-primary)]"
               aria-pressed={showProcessed}
             >
-              <Wand2 size={14} />
+              <Wand2 size={16} />
               {showProcessed ? "Processed" : "Original"}
             </button>
           )}
-          <div className="flex items-center gap-1 rounded-md border border-gray-300 px-2 py-1 text-gray-600 dark:border-gray-600 dark:text-gray-200">
+          <div className="flex items-center gap-2 rounded-xl border border-[var(--input-border)] bg-[var(--input-surface)] px-3 py-2 text-[var(--text-secondary)]">
             <button
               type="button"
               onClick={() => handleZoom(-ZOOM_STEP)}
-              aria-label="ズームアウト"
+              aria-label="Zoom out"
+              className="rounded-lg border border-[var(--control-border)] bg-[var(--control-surface)] p-1.5 transition hover:bg-[var(--control-surface-hover)] hover:text-[var(--text-primary)]"
             >
-              <ZoomOut size={14} />
+              <ZoomOut size={16} />
             </button>
-            <span className="w-10 text-center text-xs font-medium">
+            <span className="w-12 text-center text-xs font-semibold tracking-wide text-[var(--text-primary)]">
               {(zoom * 100).toFixed(0)}%
             </span>
             <button
               type="button"
               onClick={() => handleZoom(ZOOM_STEP)}
-              aria-label="ズームイン"
+              aria-label="Zoom in"
+              className="rounded-lg border border-[var(--control-border)] bg-[var(--control-surface)] p-1.5 transition hover:bg-[var(--control-surface-hover)] hover:text-[var(--text-primary)]"
             >
-              <ZoomIn size={14} />
+              <ZoomIn size={16} />
             </button>
             <button
               type="button"
               onClick={resetZoom}
-              className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              className="text-[11px] font-semibold uppercase tracking-wide text-[var(--text-secondary)] transition hover:text-[var(--text-primary)]"
             >
               Reset
             </button>
           </div>
         </div>
       </div>
-      <div className="relative flex flex-1 items-center justify-center bg-gray-100 dark:bg-gray-900">
+      <div className="relative flex flex-1 items-center justify-center bg-[var(--background-muted)]/70 md:p-2">
         {displayImage ? (
           <div className="h-full w-full overflow-auto">
             <div
@@ -104,7 +109,7 @@ export const ImagePreview = ({
             >
               <Image
                 src={displayImage}
-                alt="OCR対象画像"
+                alt="OCR target image"
                 width={Math.max(dimensions.width, 1)}
                 height={Math.max(dimensions.height, 1)}
                 unoptimized
@@ -112,15 +117,17 @@ export const ImagePreview = ({
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-1 text-center text-xs text-gray-500 dark:text-gray-400">
-            <p>No image loaded yet.</p>
-            <p>Use the buttons below to select an image.</p>
+          <div className="flex flex-col items-center gap-1 text-center text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
+            <p>No visual source linked.</p>
+            <p>Deploy the controls below to ingest an image.</p>
           </div>
         )}
         {isProcessing && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/70 text-gray-600 dark:bg-gray-900/70 dark:text-gray-200">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[var(--background)]/75 text-[var(--text-primary)] backdrop-blur-sm">
             <Spinner size={28} />
-            <span>{statusMessage}</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+              {statusMessage}
+            </span>
           </div>
         )}
       </div>

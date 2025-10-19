@@ -1,38 +1,54 @@
 @import 'tailwindcss';
 
 :root {
-  color-scheme: light;
-  --background: #f9fafb;
-  --foreground: #111827;
-  --primary: #2563eb;
-  --accent: #22c55e;
-  --surface: #ffffff;
+  color-scheme: dark;
+  --background: #050a16;
+  --background-muted: #0f172a;
+  --foreground: #e2e8f0;
+  --primary: #38bdf8;
+  --accent: #22d3ee;
+  --surface: rgba(14, 23, 40, 0.9);
+  --surface-raised: rgba(17, 28, 46, 0.95);
+  --border: rgba(148, 163, 184, 0.22);
+  --border-strong: rgba(148, 163, 184, 0.38);
+  --text-primary: #e2e8f0;
+  --text-secondary: rgba(148, 163, 184, 0.78);
+  --text-muted: rgba(148, 163, 184, 0.6);
+  --control-surface: rgba(255, 255, 255, 0.06);
+  --control-surface-hover: rgba(56, 189, 248, 0.12);
+  --control-border: rgba(56, 189, 248, 0.28);
+  --control-disabled: rgba(148, 163, 184, 0.28);
+  --input-surface: rgba(15, 23, 42, 0.58);
+  --input-border: rgba(148, 163, 184, 0.4);
+  --toast-surface: rgba(56, 189, 248, 0.16);
+  --toast-border: rgba(56, 189, 248, 0.4);
+  --toast-text: #e0f2fe;
+  --accent-soft: rgba(56, 189, 248, 0.72);
+  --shadow: 0 24px 48px -28px rgba(8, 11, 24, 0.7);
+  --app-background: radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.12), transparent 45%),
+    radial-gradient(circle at 80% 10%, rgba(34, 211, 238, 0.1), transparent 40%),
+    linear-gradient(145deg, #050a16 0%, #0b1220 45%, #111c2e 100%);
+  --font-sans: var(--font-manrope), "Manrope", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: var(--font-jetbrains), "JetBrains Mono", ui-monospace, SFMono-Regular, "Segoe UI Mono", "Roboto Mono", monospace;
 }
 
 @theme inline {
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-foreground: var(--text-primary);
   --color-primary: var(--primary);
   --color-accent: var(--accent);
   --color-surface: var(--surface);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --background: #1f2937;
-    --foreground: #f9fafb;
-    --surface: #111827;
-  }
+  --color-border: var(--border);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
 }
 
 body {
   margin: 0;
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  background: var(--app-background);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
 }
 
 * {
@@ -50,14 +66,55 @@ body {
 
 :root[data-theme='light'] {
   color-scheme: light;
-  --background: #f9fafb;
-  --foreground: #111827;
-  --surface: #ffffff;
+  --background: #e9eef9;
+  --background-muted: #f4f6fb;
+  --foreground: #0f172a;
+  --surface: rgba(255, 255, 255, 0.9);
+  --surface-raised: rgba(255, 255, 255, 0.96);
+  --border: rgba(148, 163, 184, 0.28);
+  --border-strong: rgba(71, 85, 105, 0.32);
+  --text-primary: #111c2f;
+  --text-secondary: rgba(71, 85, 105, 0.82);
+  --text-muted: rgba(100, 116, 139, 0.62);
+  --control-surface: rgba(15, 23, 42, 0.05);
+  --control-surface-hover: rgba(15, 23, 42, 0.12);
+  --control-border: rgba(56, 189, 248, 0.28);
+  --control-disabled: rgba(148, 163, 184, 0.4);
+  --input-surface: rgba(244, 247, 252, 0.85);
+  --input-border: rgba(148, 163, 184, 0.42);
+  --toast-surface: rgba(56, 189, 248, 0.18);
+  --toast-border: rgba(14, 165, 233, 0.35);
+  --toast-text: #0f172a;
+  --accent-soft: rgba(37, 99, 235, 0.62);
+  --shadow: 0 28px 60px -32px rgba(15, 23, 42, 0.35);
+  --app-background: radial-gradient(circle at 16% 18%, rgba(56, 189, 248, 0.18), transparent 46%),
+    radial-gradient(circle at 85% 0%, rgba(34, 211, 238, 0.2), transparent 42%),
+    linear-gradient(140deg, #f6f9ff 0%, #ecf2ff 38%, #d9e4ff 100%);
 }
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --background: #1f2937;
-  --foreground: #f9fafb;
-  --surface: #111827;
+  --background: #050a16;
+  --background-muted: #0f172a;
+  --surface: rgba(14, 23, 40, 0.9);
+  --surface-raised: rgba(17, 28, 46, 0.95);
+  --border: rgba(148, 163, 184, 0.22);
+  --border-strong: rgba(148, 163, 184, 0.38);
+  --text-primary: #e2e8f0;
+  --text-secondary: rgba(148, 163, 184, 0.78);
+  --text-muted: rgba(148, 163, 184, 0.6);
+  --control-surface: rgba(255, 255, 255, 0.06);
+  --control-surface-hover: rgba(56, 189, 248, 0.18);
+  --control-border: rgba(56, 189, 248, 0.28);
+  --control-disabled: rgba(148, 163, 184, 0.28);
+  --input-surface: rgba(15, 23, 42, 0.58);
+  --input-border: rgba(148, 163, 184, 0.4);
+  --toast-surface: rgba(56, 189, 248, 0.16);
+  --toast-border: rgba(56, 189, 248, 0.4);
+  --toast-text: #e0f2fe;
+  --accent-soft: rgba(56, 189, 248, 0.72);
+  --shadow: 0 24px 48px -28px rgba(8, 11, 24, 0.7);
+  --app-background: radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.12), transparent 45%),
+    radial-gradient(circle at 80% 10%, rgba(34, 211, 238, 0.1), transparent 40%),
+    linear-gradient(145deg, #050a16 0%, #0b1220 45%, #111c2e 100%);
 }

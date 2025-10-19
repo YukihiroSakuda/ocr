@@ -34,6 +34,7 @@ function HomePage() {
     sourceImage,
     processedImage,
     text,
+    confidence,
     isProcessing,
     statusMessage,
     processClipboard,
@@ -54,6 +55,7 @@ function HomePage() {
       sourceImage: state.sourceImage,
       processedImage: state.processedImage,
       text: state.text,
+      confidence: state.confidence,
       isProcessing: state.isProcessing,
       statusMessage: state.statusMessage,
       processClipboard: state.processClipboard,
@@ -128,104 +130,113 @@ function HomePage() {
 
   return (
     <>
-      <main className="flex h-screen flex-col overflow-hidden bg-gray-50 text-gray-900 transition dark:bg-gray-900 dark:text-gray-100">
-        <div className="flex w-full flex-1 flex-col gap-2 overflow-hidden px-2 py-3 md:px-4 md:py-4">
-          <header className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h1 className="text-lg font-semibold">Screenshot OCR</h1>
+      <main className="flex min-h-screen flex-col items-center overflow-hidden px-4 py-4 text-[var(--text-primary)] transition-colors">
+        <div className="flex w-full max-w-6xl flex-1 flex-col gap-4 overflow-hidden">
+          <header
+            className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--border-strong)] bg-[var(--surface-raised)] px-5 py-4 backdrop-blur-2xl"
+            style={{ boxShadow: "var(--shadow)" }}
+          >
+            <div className="space-y-1">
+              <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-soft)]">
+                Extract text from any image or screen in one click.
+              </p>
+              <h1 className="text-xl font-semibold tracking-tight text-[var(--text-primary)]">
+                Screenshot OCR Console
+              </h1>
             </div>
-          <div className="flex items-center gap-2 text-right">
-            <span className="text-[11px] text-gray-500 dark:text-gray-400">
-              {!settings
-                ? "Loading languages..."
-                : languageLabels.length
-                ? languageLabels.join(", ")
-                : "No languages selected"}
-            </span>
-            <button
-              type="button"
-              onClick={() => (settings ? setLanguageOpen(true) : undefined)}
-              disabled={!settings}
-              className="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:border-gray-400 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-600 dark:text-gray-200 dark:hover:border-gray-500"
-            >
-              <Languages size={14} />
-              Language Settings
-            </button>
-          </div>
-        </header>
+            <div className="flex flex-col items-end gap-2 text-right md:flex-row md:items-center md:gap-4">
+              <span className="text-[12px] font-medium tracking-wide text-[var(--text-secondary)]">
+                {!settings
+                  ? "Loading languages..."
+                  : languageLabels.length
+                  ? languageLabels.join(", ")
+                  : "No languages selected"}
+              </span>
+              <button
+                type="button"
+                onClick={() => (settings ? setLanguageOpen(true) : undefined)}
+                disabled={!settings}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--control-border)] bg-[var(--control-surface)] px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-[var(--text-primary)] transition hover:bg-[var(--control-surface-hover)] disabled:cursor-not-allowed disabled:border-transparent disabled:bg-transparent disabled:text-[var(--control-disabled)]"
+              >
+                <Languages size={16} />
+                Language
+              </button>
+            </div>
+          </header>
 
-        <ActionBar
-          onClipboard={processClipboard}
-          onFile={processFileSelection}
-          onHistory={() => setHistoryOpen(true)}
-          onSettings={() => setSettingsOpen(true)}
-          isProcessing={isProcessing}
+          <ActionBar
+            onClipboard={processClipboard}
+            onFile={processFileSelection}
+            onHistory={() => setHistoryOpen(true)}
+            onSettings={() => setSettingsOpen(true)}
+            isProcessing={isProcessing}
+          />
+
+          {errorMessage && (
+            <div className="rounded-xl border border-red-500/30 bg-red-500/12 px-4 py-2 text-[11px] font-semibold text-red-200 backdrop-blur-xl">
+              {errorMessage}
+            </div>
+          )}
+
+          <section className="grid w-full flex-1 min-h-0 grid-cols-1 gap-4 overflow-hidden md:grid-cols-[1.05fr_1fr]">
+            <div className="flex min-h-0 w-full overflow-hidden">
+              <ImagePreview
+                image={sourceImage}
+                processedImage={processedImage}
+                isProcessing={isProcessing}
+                statusMessage={statusMessage}
+              />
+            </div>
+            <div className="flex min-h-0 w-full overflow-hidden">
+              <TextPanel
+                text={text}
+                confidence={confidence}
+                isProcessing={isProcessing}
+                onChangeText={setUserText}
+                onCopy={handleCopy}
+                onRerun={rerunOCR}
+                canCopy={canCopy}
+              />
+            </div>
+          </section>
+        </div>
+
+        <HistoryDrawer
+          open={historyOpen}
+          onClose={() => setHistoryOpen(false)}
+          history={history}
+          onSelect={async (entry) => {
+            await applyHistoryEntry(entry);
+            setHistoryOpen(false);
+          }}
+          onDelete={deleteHistoryEntry}
+          onClear={async () => {
+            await clearHistory();
+            setHistoryOpen(false);
+          }}
+          isLoading={isHistoryLoading}
         />
 
-        {errorMessage && (
-          <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600 dark:border-red-800 dark:bg-red-900/30 dark:text-red-200">
-            {errorMessage}
-          </div>
-        )}
+        <SettingsSheet
+          open={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+          settings={settings}
+          onUpdate={updateSettings}
+        />
 
-        <section className="flex w-full flex-1 min-h-0 flex-col gap-3 overflow-hidden md:flex-row">
-          <div className="flex min-h-0 w-full flex-1 overflow-hidden">
-            <ImagePreview
-              image={sourceImage}
-              processedImage={processedImage}
-              isProcessing={isProcessing}
-              statusMessage={statusMessage}
-            />
-          </div>
-          <div className="flex min-h-0 w-full flex-1 overflow-hidden">
-            <TextPanel
-              text={text}
-              isProcessing={isProcessing}
-              onChangeText={setUserText}
-              onCopy={handleCopy}
-              onRerun={rerunOCR}
-              canCopy={canCopy}
-            />
-          </div>
-        </section>
-      </div>
-
-      <HistoryDrawer
-        open={historyOpen}
-        onClose={() => setHistoryOpen(false)}
-        history={history}
-        onSelect={async (entry) => {
-          await applyHistoryEntry(entry);
-          setHistoryOpen(false);
-        }}
-        onDelete={deleteHistoryEntry}
-        onClear={async () => {
-          await clearHistory();
-          setHistoryOpen(false);
-        }}
-        isLoading={isHistoryLoading}
-      />
-
-      <SettingsSheet
-        open={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
-        settings={settings}
-        onUpdate={updateSettings}
-      />
-
-      <LanguageOverlay
-        open={languageOpen}
-        currentLanguage={settings?.language ?? null}
-        onClose={() => setLanguageOpen(false)}
-        onSave={async (value) => {
-          await updateSettings({ language: value });
-          setLanguageOpen(false);
-        }}
-      />
+        <LanguageOverlay
+          open={languageOpen}
+          currentLanguage={settings?.language ?? null}
+          onClose={() => setLanguageOpen(false)}
+          onSave={async (value) => {
+            await updateSettings({ language: value });
+            setLanguageOpen(false);
+          }}
+        />
       </main>
       {feedback && (
         <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div className="w-full max-w-xs rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-center text-sm text-blue-700 shadow-lg dark:border-blue-900 dark:bg-blue-950/60 dark:text-blue-200">
+          <div className="w-full max-w-xs rounded-xl border border-[var(--toast-border)] bg-[var(--toast-surface)] px-4 py-3 text-center text-sm font-medium text-[var(--toast-text)] shadow-xl backdrop-blur-md">
             {feedback}
           </div>
         </div>
