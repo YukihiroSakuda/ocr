@@ -1,0 +1,35 @@
+{
+  "name": "renderer",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "export": "next export"
+  },
+  "dependencies": {
+    "@techstark/opencv-js": "^4.11.0-release.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.474.0",
+    "pdfjs-dist": "^4.6.82",
+    "tesseract.js": "^5.1.1",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "next": "15.5.6",
+    "zustand": "^5.0.1"
+  },
+  "devDependencies": {
+    "typescript": "^5",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@tailwindcss/postcss": "^4",
+    "tailwindcss": "^4",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.6",
+    "@eslint/eslintrc": "^3"
+  }
+}
+
