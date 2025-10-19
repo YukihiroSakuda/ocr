@@ -58,19 +58,6 @@ export const SettingsSheet = ({ open, onClose, settings, onUpdate }: SettingsShe
             <p className="text-gray-500 dark:text-gray-400">Loading settings…</p>
           ) : (
             <>
-              <div className="space-y-1">
-                <label className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Languages</label>
-                <select
-                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-gray-400 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
-                  value={settings.language}
-                  onChange={(event) => onUpdate({ language: event.target.value })}
-                >
-                  <option value="jpn+eng">Japanese + English</option>
-                  <option value="jpn">Japanese</option>
-                  <option value="eng">English</option>
-                </select>
-              </div>
-
               <ToggleRow
                 label="Auto copy after OCR"
                 checked={settings.autoCopy}

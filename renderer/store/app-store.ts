@@ -45,6 +45,7 @@ export interface RecognitionState {
   deleteHistoryEntry: (id: number) => Promise<void>;
   clearHistory: () => Promise<void>;
   updateSettings: (patch: Partial<AppSettings>) => Promise<void>;
+  setUserText: (value: string) => void;
 }
 
 const normalizeText = (text: string, settings: AppSettings['textNormalization']) => {
@@ -281,6 +282,10 @@ export const useAppStore = create<RecognitionState>((set, get) => ({
       console.error(error);
       set({ error: 'Failed to update settings.' });
     }
+  },
+
+  setUserText: (value: string) => {
+    set({ text: value });
   }
 }));
 
