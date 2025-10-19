@@ -1,31 +1,20 @@
-'use client';
+"use client";
 
-import {
-  ClipboardCheck,
-  ClipboardPaste,
-  FolderOpen,
-  History,
-  Loader2,
-  RefreshCw,
-  Settings
-} from 'lucide-react';
+import { ClipboardPaste, FolderOpen, History, Settings } from "lucide-react";
 
 interface ActionBarProps {
   onClipboard: () => void;
   onFile: () => void;
-  onRerun: () => void;
-  onCopy: () => void;
   onHistory: () => void;
   onSettings: () => void;
   isProcessing: boolean;
-  canCopy: boolean;
 }
 
 const ActionButton = ({
   icon,
   label,
   onClick,
-  disabled
+  disabled,
 }: {
   icon: React.ReactNode;
   label: string;
@@ -46,12 +35,9 @@ const ActionButton = ({
 export const ActionBar = ({
   onClipboard,
   onFile,
-  onRerun,
-  onCopy,
   onHistory,
   onSettings,
   isProcessing,
-  canCopy
 }: ActionBarProps) => (
   <section className="w-full shrink-0 space-y-2 rounded-md border border-gray-200 bg-white p-3 text-xs dark:border-gray-700 dark:bg-gray-800">
     <div className="flex flex-wrap gap-2">
@@ -61,16 +47,22 @@ export const ActionBar = ({
         onClick={onClipboard}
         disabled={isProcessing}
       />
-      <ActionButton icon={<FolderOpen size={16} />} label="Open File" onClick={onFile} disabled={isProcessing} />
       <ActionButton
-        icon={isProcessing ? <Loader2 className="animate-spin" size={16} /> : <RefreshCw size={16} />}
-        label="Re-run"
-        onClick={onRerun}
+        icon={<FolderOpen size={16} />}
+        label="Select File"
+        onClick={onFile}
         disabled={isProcessing}
       />
-      <ActionButton icon={<ClipboardCheck size={16} />} label="Copy" onClick={onCopy} disabled={!canCopy} />
-      <ActionButton icon={<History size={16} />} label="History" onClick={onHistory} />
-      <ActionButton icon={<Settings size={16} />} label="Settings" onClick={onSettings} />
+      <ActionButton
+        icon={<History size={16} />}
+        label="History"
+        onClick={onHistory}
+      />
+      <ActionButton
+        icon={<Settings size={16} />}
+        label="Settings"
+        onClick={onSettings}
+      />
     </div>
   </section>
 );

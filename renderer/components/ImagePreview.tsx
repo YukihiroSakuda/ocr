@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useMemo, useState } from 'react';
-import Image from 'next/image';
-import { ZoomIn, ZoomOut, Wand2 } from 'lucide-react';
-import type { SourceImage } from '@/store/app-store';
-import { Spinner } from './common/Spinner';
+import { useMemo, useState } from "react";
+import Image from "next/image";
+import { ZoomIn, ZoomOut, Wand2 } from "lucide-react";
+import type { SourceImage } from "@/store/app-store";
+import { Spinner } from "./common/Spinner";
 
 interface ImagePreviewProps {
   image: SourceImage | null;
@@ -17,7 +17,12 @@ const MIN_ZOOM = 0.4;
 const MAX_ZOOM = 3.0;
 const ZOOM_STEP = 0.1;
 
-export const ImagePreview = ({ image, processedImage, isProcessing, statusMessage }: ImagePreviewProps) => {
+export const ImagePreview = ({
+  image,
+  processedImage,
+  isProcessing,
+  statusMessage,
+}: ImagePreviewProps) => {
   const [zoom, setZoom] = useState(1);
   const [showProcessed, setShowProcessed] = useState(false);
 
@@ -46,8 +51,10 @@ export const ImagePreview = ({ image, processedImage, isProcessing, statusMessag
 
   return (
     <div className="flex h-full min-h-[260px] w-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white text-sm dark:border-gray-700 dark:bg-gray-800 md:min-h-0">
-      <div className="flex items-center justify-between border-b border-gray-200 px-3 py-1.5 text-gray-600 dark:border-gray-700 dark:text-gray-300">
-        <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Input Image</span>
+      <div className="flex min-h-[44px] items-center justify-between border-b border-gray-200 px-3 py-1.5 text-gray-600 dark:border-gray-700 dark:text-gray-300">
+        <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+          Input Image
+        </span>
         <div className="flex items-center gap-2">
           {processedImage && (
             <button
@@ -57,15 +64,25 @@ export const ImagePreview = ({ image, processedImage, isProcessing, statusMessag
               aria-pressed={showProcessed}
             >
               <Wand2 size={14} />
-              {showProcessed ? 'Processed' : 'Original'}
+              {showProcessed ? "Processed" : "Original"}
             </button>
           )}
           <div className="flex items-center gap-1 rounded-md border border-gray-300 px-2 py-1 text-gray-600 dark:border-gray-600 dark:text-gray-200">
-            <button type="button" onClick={() => handleZoom(-ZOOM_STEP)} aria-label="ズームアウト">
+            <button
+              type="button"
+              onClick={() => handleZoom(-ZOOM_STEP)}
+              aria-label="ズームアウト"
+            >
               <ZoomOut size={14} />
             </button>
-            <span className="w-10 text-center text-xs font-medium">{(zoom * 100).toFixed(0)}%</span>
-            <button type="button" onClick={() => handleZoom(ZOOM_STEP)} aria-label="ズームイン">
+            <span className="w-10 text-center text-xs font-medium">
+              {(zoom * 100).toFixed(0)}%
+            </span>
+            <button
+              type="button"
+              onClick={() => handleZoom(ZOOM_STEP)}
+              aria-label="ズームイン"
+            >
               <ZoomIn size={14} />
             </button>
             <button
@@ -73,7 +90,7 @@ export const ImagePreview = ({ image, processedImage, isProcessing, statusMessag
               onClick={resetZoom}
               className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             >
-              リセット
+              Reset
             </button>
           </div>
         </div>
