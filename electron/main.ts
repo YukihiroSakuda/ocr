@@ -1,4 +1,13 @@
-import { app, BrowserWindow, clipboard, dialog, ipcMain, nativeTheme, shell } from 'electron';
+import {
+  app,
+  BrowserWindow,
+  clipboard,
+  dialog,
+  ipcMain,
+  nativeTheme,
+  protocol,
+  shell
+} from 'electron';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import { existsSync, mkdirSync, rmSync } from 'node:fs';
@@ -14,11 +23,18 @@ let mainWindow: BrowserWindow | null = null;
 
 const PRELOAD_PATH = path.join(__dirname, 'preload.js');
 
+const getRendererRoot = () => {
+  if (IS_DEV) {
+    return path.join(__dirname, '../renderer');
+  }
+  return path.join(process.resourcesPath, 'renderer');
+};
+
 const getRendererUrl = () => {
   if (IS_DEV) {
     return DEV_URL;
   }
-  const indexPath = path.join(__dirname, '../renderer/index.html');
+  const indexPath = path.join(getRendererRoot(), 'index.html');
   return `file://${indexPath}`;
 };
 
@@ -63,6 +79,18 @@ const createWindow = async () => {
   });
 
   const url = getRendererUrl();
+  mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription, failingUrl) => {
+    console.error('[Renderer] Failed to load', failingUrl, errorCode, errorDescription);
+  });
+
+  mainWindow.webContents.on('did-finish-load', () => {
+    console.log('[Renderer] Finished loading', url);
+  });
+
+  if (!IS_DEV) {
+    mainWindow.webContents.openDevTools({ mode: 'detach' });
+  }
+
   await mainWindow.loadURL(url);
 
 };
@@ -268,6 +296,54 @@ const registerIpcHandlers = () => {
   });
 };
 
+const registerStaticAssets = () => {
+  if (IS_DEV) {
+    return;
+  }
+
+  const rendererRoot = getRendererRoot();
+  protocol.interceptFileProtocol('file', (request, callback) => {
+    const decodedUrl = decodeURI(request.url);
+
+    if (decodedUrl.startsWith('file:///_next/')) {
+      const relative = decodedUrl.replace('file:///_next/', '');
+      callback({ path: path.join(rendererRoot, '_next', relative) });
+      return;
+    }
+
+    if (decodedUrl === 'file:///favicon.ico') {
+      callback({ path: path.join(rendererRoot, 'favicon.ico') });
+      return;
+    }
+
+    if (decodedUrl.startsWith('file:///_vercel/')) {
+      const relative = decodedUrl.replace('file:///_vercel/', '');
+      callback({ path: path.join(rendererRoot, '_vercel', relative) });
+      return;
+    }
+
+    if (decodedUrl.startsWith('file:///_next-static/')) {
+      const relative = decodedUrl.replace('file:///', '');
+      callback({ path: path.join(rendererRoot, relative) });
+      return;
+    }
+
+    if (decodedUrl.startsWith('file:///tesseract/')) {
+      const relative = decodedUrl.replace('file:///tesseract/', '');
+      callback({ path: path.join(rendererRoot, 'tesseract', relative) });
+      return;
+    }
+
+    if (decodedUrl.startsWith('file:///tessdata/')) {
+      const relative = decodedUrl.replace('file:///tessdata/', '');
+      callback({ path: path.join(rendererRoot, 'tessdata', relative) });
+      return;
+    }
+
+    callback({ path: decodedUrl.replace('file:///', '') });
+  });
+};
+
 app.whenReady().then(async () => {
   historyStore = new HistoryStore(getHistoryDbPath(), 200);
   settingsStore = new SettingsStore(getDataDir());
@@ -275,6 +351,7 @@ app.whenReady().then(async () => {
   ensureDir(getImageDir());
   registerIpcHandlers();
   nativeTheme.themeSource = settingsStore.getSettings().theme;
+  registerStaticAssets();
   await createWindow();
 
   app.on('activate', () => {

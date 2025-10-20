@@ -13,6 +13,9 @@ type ExtendedWorker = Worker & {
   initialize: (langs: string) => Promise<unknown>;
 };
 
+type OpenCVModule = typeof import('@techstark/opencv-js');
+type OpenCVMat = InstanceType<OpenCVModule['Mat']>;
+
 let workerPromise: Promise<ExtendedWorker> | null = null;
 let currentLanguage = '';
 let progressHandler: ((progress: number, status?: string) => void) | null = null;
@@ -99,13 +102,11 @@ export const runOCR = async (
   }
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let cvPromise: Promise<any> | null = null;
+let cvPromise: Promise<OpenCVModule> | null = null;
 
-const waitForOpenCV = async () => {
+const waitForOpenCV = async (): Promise<OpenCVModule> => {
   if (!cvPromise) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    cvPromise = new Promise<any>(async (resolve, reject) => {
+    cvPromise = new Promise<OpenCVModule>(async (resolve, reject) => {
       try {
         await import('@techstark/opencv-js');
       } catch (error) {
@@ -117,8 +118,8 @@ const waitForOpenCV = async () => {
       const timeoutMs = 30000; // Increased from 5s to 30s
 
       const check = () => {
-        const cvCandidate = (window as unknown as { cv?: unknown }).cv;
-        if (cvCandidate && typeof (cvCandidate as { imread?: unknown }).imread === 'function') {
+        const cvCandidate = (window as unknown as { cv?: OpenCVModule }).cv;
+        if (cvCandidate && typeof cvCandidate.imread === 'function') {
           console.log('[OpenCV] Initialized successfully in', Math.round(performance.now() - start), 'ms');
           resolve(cvCandidate);
         } else if (performance.now() - start > timeoutMs) {
@@ -189,7 +190,7 @@ export const preprocessImage = async (
       10
     );
 
-    let outputMat: cv.Mat | null = null;
+    let outputMat: OpenCVMat | null = null;
 
     if (options.deskew) {
       const coordinates = new cv.Mat();
