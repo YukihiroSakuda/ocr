@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { ZoomIn, ZoomOut, Wand2 } from "lucide-react";
 import type { SourceImage } from "@/store/app-store";
@@ -25,6 +25,8 @@ export const ImagePreview = ({
 }: ImagePreviewProps) => {
   const [zoom, setZoom] = useState(1);
   const [showProcessed, setShowProcessed] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const displayImage = useMemo(() => {
     if (showProcessed && processedImage) {
@@ -49,9 +51,55 @@ export const ImagePreview = ({
 
   const resetZoom = () => setZoom(1);
 
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Only allow left-click (button 0) for dragging
+    if (e.button !== 0 || !scrollContainerRef.current) return;
+    e.preventDefault();
+    setIsDragging(true);
+    scrollContainerRef.current.style.cursor = 'grabbing';
+    scrollContainerRef.current.style.userSelect = 'none';
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging || !scrollContainerRef.current) return;
+    e.preventDefault();
+    scrollContainerRef.current.scrollLeft -= e.movementX;
+    scrollContainerRef.current.scrollTop -= e.movementY;
+  };
+
+  const handleMouseUp = () => {
+    if (!scrollContainerRef.current) return;
+    setIsDragging(false);
+    scrollContainerRef.current.style.cursor = 'grab';
+    scrollContainerRef.current.style.userSelect = '';
+  };
+
+  const handleMouseLeave = () => {
+    if (!scrollContainerRef.current) return;
+    setIsDragging(false);
+    scrollContainerRef.current.style.cursor = 'grab';
+    scrollContainerRef.current.style.userSelect = '';
+  };
+
+  // Add global mouseup listener to ensure dragging stops even if mouse is released outside the container
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      if (isDragging && scrollContainerRef.current) {
+        setIsDragging(false);
+        scrollContainerRef.current.style.cursor = 'grab';
+        scrollContainerRef.current.style.userSelect = '';
+      }
+    };
+
+    if (isDragging) {
+      window.addEventListener('mouseup', handleGlobalMouseUp);
+      return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
+    }
+  }, [isDragging]);
+
   return (
     <div
-      className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] text-sm text-[var(--text-primary)] backdrop-blur-xl md:min-h-[360px]"
+      className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] text-sm text-[var(--text-primary)] backdrop-blur-xl"
       style={{ boxShadow: "var(--shadow)" }}
     >
       <div className="flex min-h-[56px] flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] px-4 py-2 text-[var(--text-secondary)]">
@@ -102,7 +150,15 @@ export const ImagePreview = ({
       </div>
       <div className="relative flex flex-1 overflow-hidden bg-[var(--background-muted)]/70 md:p-2">
         {displayImage ? (
-          <div className="h-full w-full overflow-auto">
+          <div
+            ref={scrollContainerRef}
+            className="h-full w-full overflow-auto"
+            style={{ cursor: 'grab' }}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseLeave}
+          >
             <div
               className="mx-auto inline-block origin-top transition-transform duration-200"
               style={{ transform: `scale(${zoom})` }}
@@ -117,7 +173,7 @@ export const ImagePreview = ({
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-start gap-1 text-left text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
+          <div className="flex flex-col items-start gap-1 p-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
             <p>NO IMAGE AVAILABLE.</p>
             <p>PRESS &quot;CLIPBOARD&quot; OR &quot;SELECT FILE&quot; TO LOAD ONE.</p>
           </div>

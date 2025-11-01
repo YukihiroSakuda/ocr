@@ -44,6 +44,11 @@ body {
   box-sizing: border-box;
 }
 
+button:focus,
+button:active {
+  outline: none;
+}
+
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;

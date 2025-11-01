@@ -38,7 +38,7 @@ export const TextPanel = ({
 
   return (
     <div
-      className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] text-sm text-[var(--text-primary)] backdrop-blur-xl md:min-h-[360px]"
+      className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] text-sm text-[var(--text-primary)] backdrop-blur-xl"
       style={{ boxShadow: "var(--shadow)" }}
     >
       <div className="flex min-h-[56px] flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] px-4 py-2 text-[var(--text-secondary)]">
@@ -86,7 +86,7 @@ export const TextPanel = ({
             value={text}
             onChange={handleChange}
             placeholder={isProcessing ? "Running OCR..." : undefined}
-            className="h-full w-full resize-none border-0 bg-[var(--input-surface)] px-4 py-4 font-sans text-base leading-relaxed text-left text-[var(--text-primary)] outline-none transition focus:ring-2 focus:ring-sky-400/40 focus:ring-offset-0 placeholder:text-[var(--text-muted)] md:px-6 md:py-6"
+            className="h-full w-full resize-none border-0 bg-[var(--input-surface)] px-4 py-4 font-sans text-base leading-relaxed text-left text-[var(--text-primary)] outline-none transition placeholder:text-[var(--text-muted)] md:px-6 md:py-6"
             spellCheck={false}
           />
         </div>

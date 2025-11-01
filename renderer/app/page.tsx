@@ -130,8 +130,8 @@ function HomePage() {
 
   return (
     <>
-      <main className="flex min-h-screen flex-col items-center overflow-hidden px-4 py-4 text-[var(--text-primary)] transition-colors">
-        <div className="flex w-full max-w-6xl flex-1 min-h-0 flex-col gap-4 overflow-hidden">
+      <main className="flex h-screen flex-col items-center overflow-hidden px-4 py-4 text-[var(--text-primary)] transition-colors">
+        <div className="flex w-full max-w-6xl flex-1 min-h-0 flex-col gap-4">
           <header
             className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--border-strong)] bg-[var(--surface-raised)] px-5 py-4 backdrop-blur-2xl"
             style={{ boxShadow: "var(--shadow)" }}
@@ -178,8 +178,8 @@ function HomePage() {
             </div>
           )}
 
-          <section className="grid w-full flex-1 min-h-0 grid-cols-1 gap-4 overflow-hidden md:grid-cols-[1.05fr_1fr]">
-            <div className="flex min-h-0 w-full overflow-hidden">
+          <section className="grid w-full flex-1 min-h-0 grid-cols-1 gap-4 md:grid-cols-[1.05fr_1fr]">
+            <div className="flex min-h-0 w-full">
               <ImagePreview
                 image={sourceImage}
                 processedImage={processedImage}
@@ -187,7 +187,7 @@ function HomePage() {
                 statusMessage={statusMessage}
               />
             </div>
-            <div className="flex min-h-0 w-full overflow-hidden">
+            <div className="flex min-h-0 w-full">
               <TextPanel
                 text={text}
                 confidence={confidence}
@@ -236,7 +236,7 @@ function HomePage() {
       </main>
       {feedback && (
         <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div className="w-full max-w-xs rounded-xl border border-[var(--toast-border)] bg-[var(--toast-surface)] px-4 py-3 text-center text-sm font-medium text-[var(--toast-text)] shadow-xl backdrop-blur-md">
+          <div className="w-full max-w-xs rounded-xl border border-sky-600 bg-sky-700 px-5 py-4 text-center text-sm font-semibold text-white shadow-2xl">
             {feedback}
           </div>
         </div>
