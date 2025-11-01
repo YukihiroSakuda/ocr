@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { ZoomIn, ZoomOut, Wand2 } from "lucide-react";
+import { ZoomIn, ZoomOut, Wand2, X } from "lucide-react";
 import type { SourceImage } from "@/store/app-store";
 import { Spinner } from "./common/Spinner";
 
@@ -11,6 +11,7 @@ interface ImagePreviewProps {
   processedImage: string | null;
   isProcessing: boolean;
   statusMessage: string;
+  onClear: () => void;
 }
 
 const MIN_ZOOM = 0.4;
@@ -22,6 +23,7 @@ export const ImagePreview = ({
   processedImage,
   isProcessing,
   statusMessage,
+  onClear,
 }: ImagePreviewProps) => {
   const [zoom, setZoom] = useState(1);
   const [showProcessed, setShowProcessed] = useState(false);
@@ -146,6 +148,17 @@ export const ImagePreview = ({
               Reset
             </button>
           </div>
+          {image && (
+            <button
+              type="button"
+              onClick={onClear}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--control-border)] bg-[var(--control-surface)] text-[var(--text-secondary)] transition hover:bg-[var(--control-surface-hover)] hover:text-[var(--text-primary)]"
+              title="Clear image and result"
+            >
+              <X size={18} />
+              <span className="sr-only">Clear</span>
+            </button>
+          )}
         </div>
       </div>
       <div className="relative flex flex-1 overflow-hidden bg-[var(--background-muted)]/70 md:p-2">

@@ -11,6 +11,7 @@ interface TextPanelProps {
   onCopy: () => void;
   onRerun: () => void;
   canCopy: boolean;
+  hasImage: boolean;
 }
 
 export const TextPanel = ({
@@ -21,6 +22,7 @@ export const TextPanel = ({
   onCopy,
   onRerun,
   canCopy,
+  hasImage,
 }: TextPanelProps) => {
   const lines = useMemo(
     () => (text.trim().length > 0 ? text.split("\n") : []),
@@ -57,7 +59,7 @@ export const TextPanel = ({
           <button
             type="button"
             onClick={onRerun}
-            disabled={isProcessing}
+            disabled={isProcessing || !hasImage}
             className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--control-border)] bg-[var(--control-surface)] text-[var(--text-secondary)] transition hover:bg-[var(--control-surface-hover)] hover:text-[var(--text-primary)] disabled:cursor-not-allowed disabled:border-transparent disabled:bg-transparent disabled:text-[var(--control-disabled)]"
             title="Re-run OCR"
           >

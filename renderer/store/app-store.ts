@@ -46,6 +46,7 @@ export interface RecognitionState {
   clearHistory: () => Promise<void>;
   updateSettings: (patch: Partial<AppSettings>) => Promise<void>;
   setUserText: (value: string) => void;
+  clearAll: () => void;
 }
 
 const normalizeText = (text: string, settings: AppSettings['textNormalization']) => {
@@ -286,6 +287,17 @@ export const useAppStore = create<RecognitionState>((set, get) => ({
 
   setUserText: (value: string) => {
     set({ text: value });
+  },
+
+  clearAll: () => {
+    set({
+      sourceImage: null,
+      processedImage: null,
+      text: '',
+      confidence: null,
+      error: null,
+      lastProcessedAt: null
+    });
   }
 }));
 

@@ -49,6 +49,7 @@ function HomePage() {
     updateSettings,
     setUserText,
     error,
+    clearAll,
   } = useAppStore(
     useShallow((state) => ({
       initialize: state.initialize,
@@ -70,6 +71,7 @@ function HomePage() {
       updateSettings: state.updateSettings,
       setUserText: state.setUserText,
       error: state.error,
+      clearAll: state.clearAll,
     }))
   );
 
@@ -185,6 +187,7 @@ function HomePage() {
                 processedImage={processedImage}
                 isProcessing={isProcessing}
                 statusMessage={statusMessage}
+                onClear={clearAll}
               />
             </div>
             <div className="flex min-h-0 w-full">
@@ -196,6 +199,7 @@ function HomePage() {
                 onCopy={handleCopy}
                 onRerun={rerunOCR}
                 canCopy={canCopy}
+                hasImage={sourceImage !== null}
               />
             </div>
           </section>
