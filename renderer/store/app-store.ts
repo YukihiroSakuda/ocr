@@ -40,6 +40,7 @@ export interface RecognitionState {
   refreshHistory: () => Promise<void>;
   processClipboard: () => Promise<void>;
   processFileSelection: () => Promise<void>;
+  processDroppedFile: (filePath: string) => Promise<void>;
   rerunOCR: () => Promise<void>;
   applyHistoryEntry: (entry: HistoryEntry) => Promise<void>;
   deleteHistoryEntry: (id: number) => Promise<void>;
@@ -209,6 +210,23 @@ export const useAppStore = create<RecognitionState>((set, get) => ({
     }
     set({ error: null });
     const image = await prepareDialogImage(await api.openImageDialog());
+    if (!image) {
+      return;
+    }
+    await processImage(image, set, get);
+  },
+
+  processDroppedFile: async (filePath: string) => {
+    const api = getDesktopAPI();
+    if (!api) {
+      set({ error: 'File processing is unavailable.' });
+      return;
+    }
+    if (get().isProcessing) {
+      return;
+    }
+    set({ error: null });
+    const image = await prepareDialogImage(await api.processDroppedFile(filePath));
     if (!image) {
       return;
     }

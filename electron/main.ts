@@ -15,6 +15,7 @@ import { randomUUID } from 'node:crypto';
 import HistoryStore, { HistoryEntry, HistoryInput } from './storage/history';
 import SettingsStore from './storage/settings';
 import type { AppSettings } from './storage/settingsSchema';
+import { MAX_HISTORY_ITEMS } from './storage/settingsSchema';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 const DEV_URL = process.env.ELECTRON_RENDERER_URL ?? 'http://localhost:3000';
@@ -169,7 +170,6 @@ const registerIpcHandlers = () => {
   ipcMain.handle('settings:update', (_event, partial: Partial<AppSettings>) => {
     const updated = settingsStore.updateSettings(partial);
     nativeTheme.themeSource = updated.theme;
-    historyStore.setMaxEntries(updated.maxHistoryItems);
     return updated;
   });
 
@@ -200,6 +200,30 @@ const registerIpcHandlers = () => {
     }
 
     const filePath = result.filePaths[0];
+    const ext = path.extname(filePath).toLowerCase();
+
+    if (ext === '.pdf') {
+      const buffer = await fs.readFile(filePath);
+      return {
+        type: 'pdf' as const,
+        filePath,
+        data: buffer.toString('base64')
+      };
+    }
+
+    const { filePath: storedPath, dataUrl } = await copyImageToStore(filePath);
+    return {
+      type: 'image' as const,
+      filePath: storedPath,
+      dataUrl
+    };
+  });
+
+  ipcMain.handle('file:process-dropped', async (_event, filePath: string) => {
+    if (!filePath || !existsSync(filePath)) {
+      return null;
+    }
+
     const ext = path.extname(filePath).toLowerCase();
 
     if (ext === '.pdf') {
@@ -345,9 +369,8 @@ const registerStaticAssets = () => {
 };
 
 app.whenReady().then(async () => {
-  historyStore = new HistoryStore(getHistoryDbPath(), 200);
+  historyStore = new HistoryStore(getHistoryDbPath(), MAX_HISTORY_ITEMS);
   settingsStore = new SettingsStore(getDataDir());
-  historyStore.setMaxEntries(settingsStore.getSettings().maxHistoryItems);
   ensureDir(getImageDir());
   registerIpcHandlers();
   nativeTheme.themeSource = settingsStore.getSettings().theme;

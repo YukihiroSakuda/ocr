@@ -11,7 +11,6 @@ export interface AppSettings {
   autoCopy: boolean;
   autoProcessClipboard: boolean;
   theme: ThemePreference;
-  maxHistoryItems: number;
   textNormalization: TextNormalizationSetting;
 }
 
@@ -59,6 +58,7 @@ export interface DesktopAPI {
   getClipboardImage(): Promise<ClipboardImageResult | null>;
   writeClipboardText(text: string): Promise<boolean>;
   openImageDialog(): Promise<ImageDialogResult | null>;
+  processDroppedFile(filePath: string): Promise<ImageDialogResult | null>;
   saveDataUrl(payload: { dataUrl: string; prefix?: string }): Promise<{ filePath: string }>;
   readFileDataUrl(path: string): Promise<string>;
   listHistory(): Promise<HistoryEntry[]>;

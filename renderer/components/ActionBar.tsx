@@ -1,13 +1,10 @@
 "use client";
 
-import { ClipboardPaste, FolderOpen, History, Settings } from "lucide-react";
+import { History, Settings } from "lucide-react";
 
 interface ActionBarProps {
-  onClipboard: () => void;
-  onFile: () => void;
   onHistory: () => void;
   onSettings: () => void;
-  isProcessing: boolean;
 }
 
 const ActionButton = ({
@@ -33,29 +30,14 @@ const ActionButton = ({
 );
 
 export const ActionBar = ({
-  onClipboard,
-  onFile,
   onHistory,
   onSettings,
-  isProcessing,
 }: ActionBarProps) => (
   <section
     className="w-full shrink-0 space-y-2.5 rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-3 text-xs text-[var(--text-secondary)] backdrop-blur-xl"
     style={{ boxShadow: "var(--shadow)" }}
   >
     <div className="flex flex-wrap items-center gap-1.5">
-      <ActionButton
-        icon={<ClipboardPaste size={16} />}
-        label="Clipboard"
-        onClick={onClipboard}
-        disabled={isProcessing}
-      />
-      <ActionButton
-        icon={<FolderOpen size={16} />}
-        label="Select File"
-        onClick={onFile}
-        disabled={isProcessing}
-      />
       <ActionButton
         icon={<History size={16} />}
         label="History"

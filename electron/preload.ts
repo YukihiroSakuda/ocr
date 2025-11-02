@@ -30,6 +30,7 @@ export interface DesktopAPI {
   getClipboardImage(): Promise<ClipboardImageResult>;
   writeClipboardText(text: string): Promise<boolean>;
   openImageDialog(): Promise<ImageResult | null>;
+  processDroppedFile(filePath: string): Promise<ImageResult | null>;
   saveDataUrl(payload: { dataUrl: string; prefix?: string }): Promise<{ filePath: string }>;
   readFileDataUrl(path: string): Promise<string>;
   listHistory(): Promise<HistoryEntry[]>;
@@ -48,6 +49,7 @@ const desktopAPI: DesktopAPI = {
   getClipboardImage: () => ipcRenderer.invoke('clipboard:get-image'),
   writeClipboardText: (text) => ipcRenderer.invoke('clipboard:write-text', text),
   openImageDialog: () => ipcRenderer.invoke('file:open-image'),
+  processDroppedFile: (filePath) => ipcRenderer.invoke('file:process-dropped', filePath),
   saveDataUrl: (payload) => ipcRenderer.invoke('file:save-data-url', payload),
   readFileDataUrl: (path) => ipcRenderer.invoke('file:read-data-url', path),
   listHistory: () => ipcRenderer.invoke('history:list'),

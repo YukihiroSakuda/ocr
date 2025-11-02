@@ -158,27 +158,6 @@ export const SettingsSheet = ({
                 }
               />
 
-              <div className="space-y-2 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-4 shadow-[0_18px_40px_-26px_rgba(15,23,42,0.55)]">
-                <label className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--text-muted)]">
-                  History limit
-                </label>
-                <input
-                  type="number"
-                  min={10}
-                  max={500}
-                  value={settings.maxHistoryItems}
-                  onChange={(event) => {
-                    const next = Number.parseInt(event.target.value, 10);
-                    onUpdate({
-                      maxHistoryItems: Number.isNaN(next)
-                        ? settings.maxHistoryItems
-                        : next,
-                    });
-                  }}
-                  className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-surface)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none transition"
-                />
-              </div>
-
               <div className="space-y-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-4 shadow-[0_18px_40px_-26px_rgba(15,23,42,0.55)]">
                 <label className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--text-muted)]">
                   Theme

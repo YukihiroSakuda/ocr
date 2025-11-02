@@ -66,7 +66,7 @@ The project has a monorepo-like structure:
 
 ### Project Structure
 ```
-screen/
+ocr/
 ├── electron/              # Electron main process code
 │   ├── main.ts           # Entry point, window creation, IPC handlers
 │   ├── preload.ts        # Context bridge exposing desktopAPI to renderer
@@ -115,8 +115,8 @@ screen/
 
 ### Data Flow
 
-1. **User triggers OCR** (clipboard/file button)
-2. **Renderer** calls `desktopAPI.getClipboardImage()` or `desktopAPI.openImageDialog()`
+1. **User triggers OCR** (clipboard button / file dialog / drag & drop)
+2. **Renderer** calls `desktopAPI.getClipboardImage()`, `desktopAPI.openImageDialog()`, or `desktopAPI.processDroppedFile(filePath)`
 3. **Main process** returns image data URL + file path
 4. **Renderer** runs OpenCV preprocessing in browser (WASM)
 5. **Renderer** runs Tesseract OCR in Web Worker
@@ -252,3 +252,5 @@ CREATE TABLE history (
 - **SQLite transactions**: better-sqlite3 is synchronous; no async needed
 - **History limits**: Enforced automatically via `setMaxEntries()` after each insert
 - **Theme persistence**: Settings store syncs with `nativeTheme.themeSource` in main process
+- **Drag & drop**: In Electron, File objects have a `path` property that provides absolute file paths. Type it as `File & { path: string }` to avoid TypeScript errors
+- **Drag overlay**: Visual feedback is shown via `isDragging` state when files are dragged over the main element
