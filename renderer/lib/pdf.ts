@@ -38,7 +38,11 @@ export interface PdfInfo {
 export const getPdfInfo = async (base64: string): Promise<PdfInfo> => {
   const pdfjs = await loadPdfJs();
   const pdfData = base64ToUint8Array(base64);
-  const pdf = await pdfjs.getDocument({ data: pdfData }).promise;
+  const pdf = await pdfjs.getDocument({
+    data: pdfData,
+    cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/cmaps/',
+    cMapPacked: true
+  }).promise;
   const pageCount = pdf.numPages;
   pdf.cleanup();
   return { pageCount };
@@ -47,7 +51,11 @@ export const getPdfInfo = async (base64: string): Promise<PdfInfo> => {
 export const renderPdfPage = async (base64: string, pageNumber: number): Promise<PdfRenderResult> => {
   const pdfjs = await loadPdfJs();
   const pdfData = base64ToUint8Array(base64);
-  const pdf = await pdfjs.getDocument({ data: pdfData }).promise;
+  const pdf = await pdfjs.getDocument({
+    data: pdfData,
+    cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/cmaps/',
+    cMapPacked: true
+  }).promise;
 
   if (pageNumber < 1 || pageNumber > pdf.numPages) {
     pdf.cleanup();
