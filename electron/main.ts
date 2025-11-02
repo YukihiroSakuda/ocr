@@ -66,6 +66,7 @@ const createWindow = async () => {
     show: false,
     autoHideMenuBar: true,
     backgroundColor: '#000000',
+    icon: path.join(__dirname, '../logo.svg'),
     webPreferences: {
       preload: PRELOAD_PATH,
       contextIsolation: true,
