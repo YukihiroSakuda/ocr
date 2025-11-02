@@ -40,17 +40,17 @@ export const TextPanel = ({
 
   return (
     <div
-      className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] text-sm text-[var(--text-primary)] backdrop-blur-xl"
+      className="flex h-full min-h-0 w-full flex-col overflow-hidden border border-[var(--border-strong)] bg-[var(--surface)] text-sm text-[var(--text-primary)]"
       style={{ boxShadow: "var(--shadow)" }}
     >
-      <div className="flex min-h-[56px] flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] px-4 py-2 text-[var(--text-secondary)]">
+      <div className="flex min-h-[48px] flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] bg-[var(--surface-raised)] px-4 py-2 text-[var(--text-secondary)]">
         <div className="flex items-center gap-3">
-          <span className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--text-secondary)]">
-            OCR Output
+          <span className="text-[10px] font-mono font-semibold uppercase tracking-[0.3em] text-[var(--text-tertiary)]">
+            OUTPUT_TXT
           </span>
-          <span className="inline-flex items-center gap-2 rounded-full border border-[var(--control-border)] bg-[var(--control-surface)] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
-            <span className="text-[var(--text-muted)]">Confidence</span>
-            <span className="text-[var(--text-primary)]">
+          <span className="inline-flex items-center gap-2 border border-[var(--control-border)] bg-[var(--control-surface)] px-2 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+            <span className="text-[var(--text-tertiary)]">CONF</span>
+            <span className="text-[var(--accent-base)]">
               {formattedConfidence}
             </span>
           </span>
@@ -60,13 +60,13 @@ export const TextPanel = ({
             type="button"
             onClick={onRerun}
             disabled={isProcessing || !hasImage}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--control-border)] bg-[var(--control-surface)] text-[var(--text-secondary)] transition hover:bg-[var(--control-surface-hover)] hover:text-[var(--text-primary)] disabled:cursor-not-allowed disabled:border-transparent disabled:bg-transparent disabled:text-[var(--control-disabled)]"
+            className="inline-flex items-center justify-center border border-[var(--control-border)] bg-[var(--control-surface)] p-1.5 text-[var(--text-secondary)] transition hover:border-[var(--accent-base)] hover:bg-[var(--control-surface-hover)] hover:text-[var(--accent-base)] disabled:cursor-not-allowed disabled:border-transparent disabled:bg-transparent disabled:text-[var(--control-disabled)]"
             title="Re-run OCR"
           >
             {isProcessing ? (
-              <Loader2 size={18} className="animate-spin" />
+              <Loader2 size={16} className="animate-spin" />
             ) : (
-              <RefreshCw size={18} />
+              <RefreshCw size={16} />
             )}
             <span className="sr-only">Re-run OCR</span>
           </button>
@@ -74,10 +74,10 @@ export const TextPanel = ({
             type="button"
             onClick={onCopy}
             disabled={!canCopy}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--control-border)] bg-[var(--control-surface)] text-[var(--text-secondary)] transition hover:bg-[var(--control-surface-hover)] hover:text-[var(--text-primary)] disabled:cursor-not-allowed disabled:border-transparent disabled:bg-transparent disabled:text-[var(--control-disabled)]"
+            className="inline-flex items-center justify-center border border-[var(--control-border)] bg-[var(--control-surface)] p-1.5 text-[var(--text-secondary)] transition hover:border-[var(--accent-base)] hover:bg-[var(--control-surface-hover)] hover:text-[var(--accent-base)] disabled:cursor-not-allowed disabled:border-transparent disabled:bg-transparent disabled:text-[var(--control-disabled)]"
             title="Copy text"
           >
-            <Copy size={18} />
+            <Copy size={16} />
             <span className="sr-only">Copy recognized text</span>
           </button>
         </div>

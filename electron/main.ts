@@ -4,7 +4,6 @@ import {
   clipboard,
   dialog,
   ipcMain,
-  nativeTheme,
   protocol,
   shell
 } from 'electron';
@@ -66,7 +65,7 @@ const createWindow = async () => {
     height: 640,
     show: false,
     autoHideMenuBar: true,
-    backgroundColor: nativeTheme.shouldUseDarkColors ? '#1F2937' : '#F9FAFB',
+    backgroundColor: '#000000',
     webPreferences: {
       preload: PRELOAD_PATH,
       contextIsolation: true,
@@ -162,15 +161,11 @@ const registerIpcHandlers = () => {
   }));
 
   ipcMain.handle('settings:get', () => {
-    const settings = settingsStore.getSettings();
-    nativeTheme.themeSource = settings.theme;
-    return settings;
+    return settingsStore.getSettings();
   });
 
   ipcMain.handle('settings:update', (_event, partial: Partial<AppSettings>) => {
-    const updated = settingsStore.updateSettings(partial);
-    nativeTheme.themeSource = updated.theme;
-    return updated;
+    return settingsStore.updateSettings(partial);
   });
 
   ipcMain.handle('clipboard:get-image', async () => {
@@ -373,7 +368,6 @@ app.whenReady().then(async () => {
   settingsStore = new SettingsStore(getDataDir());
   ensureDir(getImageDir());
   registerIpcHandlers();
-  nativeTheme.themeSource = settingsStore.getSettings().theme;
   registerStaticAssets();
   await createWindow();
 

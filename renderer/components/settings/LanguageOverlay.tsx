@@ -64,27 +64,24 @@ export const LanguageOverlay = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
       <div
-        className="absolute inset-0 bg-black/40"
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
-      <section className="relative z-10 w-full max-w-3xl rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] p-6 text-sm text-[var(--text-primary)] shadow-2xl backdrop-blur-2xl">
-        <header className="mb-4 space-y-1">
-          <h2 className="text-base font-semibold text-[var(--text-primary)]">
-            Language Preferences
+      <section className="relative z-10 w-full max-w-3xl border border-[var(--border-strong)] bg-[var(--surface)] p-6 text-sm text-[var(--text-primary)]" style={{ boxShadow: 'var(--glow)' }}>
+        <header className="mb-5 border-b border-[var(--border)] pb-4">
+          <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--text-tertiary)]">
+            OCR LANGUAGE CONFIG
+          </p>
+          <h2 className="text-lg font-mono font-bold tracking-tight text-[var(--accent-base)]">
+            &gt; SELECT_LANGUAGES
           </h2>
-          <p
-            className={`text-xs transition ${
-              selection.length
-                ? "text-[var(--control-surface)]"
-                : "text-[var(--text-muted)]"
-            }`}
-          >
-            Select all languages you need for OCR.
+          <p className="mt-1 font-mono text-[10px] uppercase tracking-wide text-[var(--text-secondary)]">
+            {selection.length ? `${selection.length} SELECTED` : "NO SELECTION"}
           </p>
         </header>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="flex flex-wrap gap-2">
             {LANGUAGE_OPTIONS.map((option) => {
               const isSelected = selection.includes(option.code);
@@ -94,10 +91,10 @@ export const LanguageOverlay = ({
                   type="button"
                   onClick={() => toggleLanguage(option.code)}
                   aria-pressed={isSelected}
-                  className={`rounded-2xl border px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-wide transition ${
+                  className={`border px-3 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-wide transition ${
                     isSelected
-                      ? "border-[var(--control-border)] bg-[var(--accent-soft)] text-[var(--surface-raised)] shadow-[0_0_0_1px_rgba(56,189,248,0.35)]"
-                      : "border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--control-border)] hover:text-[var(--text-primary)]"
+                      ? "border-[var(--accent-base)] bg-[var(--accent-base)]/10 text-[var(--accent-base)]"
+                      : "border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--accent-base)] hover:text-[var(--accent-base)]"
                   }`}
                 >
                   {option.label}
@@ -105,35 +102,35 @@ export const LanguageOverlay = ({
               );
             })}
           </div>
-          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs text-[var(--text-secondary)]">
-            {selectedLabels.length ? selectedLabels.join(", ") : "No languages selected."}
+          <div className="border border-[var(--border)] bg-[var(--input-surface)] px-3 py-2 font-mono text-[10px] uppercase tracking-wide text-[var(--text-secondary)]">
+            {selectedLabels.length ? selectedLabels.join(" / ") : "[ NONE ]"}
           </div>
         </div>
 
-        <footer className="mt-6 flex items-center justify-end gap-2">
+        <footer className="mt-6 flex items-center justify-end gap-2 border-t border-[var(--border)] pt-4">
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex items-center gap-1 rounded-lg border border-[var(--control-border)] bg-[var(--control-surface)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--text-secondary)] transition hover:bg-[var(--control-surface-hover)] hover:text-[var(--text-primary)]"
+            className="inline-flex items-center gap-1.5 border border-[var(--control-border)] bg-[var(--control-surface)] px-3 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-wide text-[var(--text-secondary)] transition hover:border-[var(--accent-base)] hover:bg-[var(--control-surface-hover)] hover:text-[var(--accent-base)]"
           >
-            <X size={14} />
-            Cancel
+            <X size={12} />
+            CANCEL
           </button>
           <button
             type="button"
             onClick={handleSave}
             disabled={!selection.length || isSaving}
-            className="inline-flex items-center gap-1 rounded-lg border border-[var(--control-border)] bg-[var(--control-surface)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--text-primary)] transition hover:bg-[var(--control-surface-hover)] disabled:cursor-not-allowed disabled:border-transparent disabled:bg-transparent disabled:text-[var(--control-disabled)]"
+            className="inline-flex items-center gap-1.5 border border-[var(--control-border)] bg-[var(--control-surface)] px-3 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-wide text-[var(--accent-base)] transition hover:border-[var(--accent-base)] hover:bg-[var(--control-surface-hover)] disabled:cursor-not-allowed disabled:border-transparent disabled:bg-transparent disabled:text-[var(--control-disabled)]"
           >
             {isSaving ? (
               <>
-                <Loader2 className="animate-spin" size={14} />
-                Saving...
+                <Loader2 className="animate-spin" size={12} />
+                SAVING
               </>
             ) : (
               <>
-                <Check size={14} />
-                Save
+                <Check size={12} />
+                SAVE
               </>
             )}
           </button>

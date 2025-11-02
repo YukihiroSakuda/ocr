@@ -1,5 +1,3 @@
-export type ThemePreference = 'system' | 'light' | 'dark';
-
 export interface TextNormalizationSetting {
   trimWhitespace: boolean;
   collapseWhitespace: boolean;
@@ -10,7 +8,6 @@ export interface AppSettings {
   language: string;
   autoCopy: boolean;
   autoProcessClipboard: boolean;
-  theme: ThemePreference;
   textNormalization: TextNormalizationSetting;
 }
 

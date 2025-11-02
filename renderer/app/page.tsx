@@ -10,23 +10,7 @@ import { SettingsSheet } from "@/components/settings/SettingsSheet";
 import { LanguageOverlay } from "@/components/settings/LanguageOverlay";
 import { getLanguageLabels, parseLanguageString } from "@/lib/languages";
 import { useAppStore } from "@/store/app-store";
-import type { ThemePreference } from "@/types/desktop";
 import { Languages, History, Settings } from "lucide-react";
-
-const applyTheme = (theme: ThemePreference) => {
-  if (typeof document === "undefined") return;
-  const root = document.documentElement;
-  const resolveTheme = (): ThemePreference => {
-    if (theme === "system") {
-      const prefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)"
-      ).matches;
-      return prefersDark ? "dark" : "light";
-    }
-    return theme;
-  };
-  root.setAttribute("data-theme", resolveTheme());
-};
 
 function HomePage() {
   const {
@@ -88,22 +72,6 @@ function HomePage() {
   useEffect(() => {
     initialize();
   }, [initialize]);
-
-  const currentTheme = settings?.theme;
-
-  useEffect(() => {
-    if (!currentTheme) return;
-    applyTheme(currentTheme);
-    if (currentTheme === "system") {
-      const media = window.matchMedia("(prefers-color-scheme: dark)");
-      const listener = (event: MediaQueryListEvent) => {
-        applyTheme(event.matches ? "dark" : "light");
-      };
-      media.addEventListener("change", listener);
-      return () => media.removeEventListener("change", listener);
-    }
-    return undefined;
-  }, [currentTheme]);
 
   useEffect(() => {
     if (!feedback) return undefined;
@@ -186,56 +154,56 @@ function HomePage() {
       >
         <div className="flex w-full max-w-6xl flex-1 min-h-0 flex-col gap-4">
           <header
-            className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--border-strong)] bg-[var(--surface-raised)] px-5 py-4 backdrop-blur-2xl"
+            className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-strong)] bg-[var(--surface)] px-5 py-3"
             style={{ boxShadow: "var(--shadow)" }}
           >
-            <div className="space-y-1">
-              <p className="text-xs uppercase tracking-[0.24em] text-[var(--accent-soft)]">
-                Extract text from any image or screen in one click.
+            <div className="space-y-0.5">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-[var(--text-tertiary)] font-mono">
+                <span className="text-[var(--accent-pink)]">O</span>PTICAL <span className="text-[var(--accent-pink)]">C</span>HARACTER <span className="text-[var(--accent-pink)]">R</span>ECOGNITION
               </p>
-              <h1 className="text-xl font-semibold tracking-tight text-[var(--text-primary)]">
-                Screenshot OCR Console
+              <h1 className="text-lg font-bold tracking-tight text-[var(--accent-base)] font-mono">
+                &gt; OCR_CONSOLE
               </h1>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[12px] font-medium tracking-wide text-[var(--text-secondary)]">
+              <span className="text-[11px] font-mono tracking-wide text-[var(--text-secondary)] uppercase">
                 {!settings
-                  ? "Loading languages..."
+                  ? "LOADING..."
                   : languageLabels.length
-                  ? languageLabels.join(", ")
-                  : "No languages selected"}
+                  ? languageLabels.join(" / ")
+                  : "NO LANG"}
               </span>
               <button
                 type="button"
                 onClick={() => (settings ? setLanguageOpen(true) : undefined)}
                 disabled={!settings}
                 title="Language"
-                className="inline-flex items-center justify-center rounded-lg border border-[var(--control-border)] bg-[var(--control-surface)] p-2 text-[var(--text-primary)] transition hover:bg-[var(--control-surface-hover)] disabled:cursor-not-allowed disabled:border-transparent disabled:bg-transparent disabled:text-[var(--control-disabled)]"
+                className="inline-flex items-center justify-center border border-[var(--control-border)] bg-[var(--control-surface)] p-1.5 text-[var(--text-primary)] transition hover:border-[var(--accent-base)] hover:bg-[var(--control-surface-hover)] disabled:cursor-not-allowed disabled:border-transparent disabled:bg-transparent disabled:text-[var(--control-disabled)]"
               >
-                <Languages size={18} />
+                <Languages size={16} />
               </button>
               <button
                 type="button"
                 onClick={() => setHistoryOpen(true)}
                 title="History"
-                className="inline-flex items-center justify-center rounded-lg border border-[var(--control-border)] bg-[var(--control-surface)] p-2 text-[var(--text-primary)] transition hover:bg-[var(--control-surface-hover)]"
+                className="inline-flex items-center justify-center border border-[var(--control-border)] bg-[var(--control-surface)] p-1.5 text-[var(--text-primary)] transition hover:border-[var(--accent-base)] hover:bg-[var(--control-surface-hover)]"
               >
-                <History size={18} />
+                <History size={16} />
               </button>
               <button
                 type="button"
                 onClick={() => setSettingsOpen(true)}
                 title="Settings"
-                className="inline-flex items-center justify-center rounded-lg border border-[var(--control-border)] bg-[var(--control-surface)] p-2 text-[var(--text-primary)] transition hover:bg-[var(--control-surface-hover)]"
+                className="inline-flex items-center justify-center border border-[var(--control-border)] bg-[var(--control-surface)] p-1.5 text-[var(--text-primary)] transition hover:border-[var(--accent-base)] hover:bg-[var(--control-surface-hover)]"
               >
-                <Settings size={18} />
+                <Settings size={16} />
               </button>
             </div>
           </header>
 
           {errorMessage && (
-            <div className="rounded-xl border border-red-500/30 bg-red-500/12 px-4 py-2 text-[11px] font-semibold text-red-200 backdrop-blur-xl">
-              {errorMessage}
+            <div className="border border-red-500/50 bg-red-500/10 px-4 py-2 text-[11px] font-mono text-red-400">
+              ERROR: {errorMessage}
             </div>
           )}
 
@@ -320,7 +288,7 @@ function HomePage() {
       )}
       {feedback && (
         <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div className="w-full max-w-xs rounded-xl border border-sky-600 bg-sky-700 px-5 py-4 text-center text-sm font-semibold text-white shadow-2xl">
+          <div className="w-full max-w-xs border-2 border-[var(--accent-pink)] bg-black px-5 py-4 text-center font-mono text-sm font-semibold uppercase tracking-wide text-[var(--accent-pink)]" style={{ boxShadow: 'var(--glow-pink)' }}>
             {feedback}
           </div>
         </div>

@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { ZoomIn, ZoomOut, Wand2, X } from "lucide-react";
 import type { SourceImage } from "@/store/app-store";
-import { Spinner } from "./common/Spinner";
 import { PdfPageNavigator } from "./PdfPageNavigator";
 
 interface ImagePreviewProps {
@@ -104,13 +103,13 @@ export const ImagePreview = ({
 
   return (
     <div
-      className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] text-sm text-[var(--text-primary)] backdrop-blur-xl"
+      className="flex h-full min-h-0 w-full flex-col overflow-hidden border border-[var(--border-strong)] bg-[var(--surface)] text-sm text-[var(--text-primary)]"
       style={{ boxShadow: "var(--shadow)" }}
     >
-      <div className="flex min-h-[56px] flex-nowrap items-center justify-between gap-2 border-b border-[var(--border)] px-4 py-2 text-[var(--text-secondary)] overflow-x-auto">
+      <div className="flex min-h-[48px] flex-nowrap items-center justify-between gap-2 border-b border-[var(--border)] bg-[var(--surface-raised)] px-4 py-2 text-[var(--text-secondary)] overflow-x-auto">
         <div className="flex items-center gap-3">
-          <span className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--text-secondary)]">
-            Input Image
+          <span className="text-[10px] font-mono font-semibold uppercase tracking-[0.3em] text-[var(--text-tertiary)]">
+            INPUT_IMG
           </span>
           {image?.origin === 'pdf' && image.currentPage && image.totalPages && onPageChange && (
             <PdfPageNavigator
@@ -126,49 +125,49 @@ export const ImagePreview = ({
             <button
               type="button"
               onClick={() => setShowProcessed((prev) => !prev)}
-              className="inline-flex h-9 items-center gap-2 rounded-xl border border-[var(--control-border)] bg-[var(--control-surface)] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text-secondary)] transition hover:bg-[var(--control-surface-hover)] hover:text-[var(--text-primary)]"
+              className="inline-flex items-center gap-1.5 border border-[var(--control-border)] bg-[var(--control-surface)] px-2.5 py-1.5 text-[10px] font-mono font-semibold uppercase tracking-wide text-[var(--text-secondary)] transition hover:border-[var(--accent-base)] hover:bg-[var(--control-surface-hover)] hover:text-[var(--accent-base)]"
               aria-pressed={showProcessed}
             >
-              <Wand2 size={16} />
-              {showProcessed ? "Processed" : "Original"}
+              <Wand2 size={14} />
+              {showProcessed ? "PROC" : "ORIG"}
             </button>
           )}
-          <div className="flex items-center gap-2 rounded-xl border border-[var(--input-border)] bg-[var(--input-surface)] px-3 py-1 text-[var(--text-secondary)]">
+          <div className="flex items-center gap-1.5 border border-[var(--input-border)] bg-[var(--input-surface)] px-2 py-1 text-[var(--text-secondary)]">
             <button
               type="button"
               onClick={() => handleZoom(-ZOOM_STEP)}
               aria-label="Zoom out"
-              className="rounded-lg border border-[var(--control-border)] bg-[var(--control-surface)] p-1.5 transition hover:bg-[var(--control-surface-hover)] hover:text-[var(--text-primary)]"
+              className="border border-[var(--control-border)] bg-[var(--control-surface)] p-1 transition hover:border-[var(--accent-base)] hover:bg-[var(--control-surface-hover)] hover:text-[var(--accent-base)]"
             >
-              <ZoomOut size={16} />
+              <ZoomOut size={14} />
             </button>
-            <span className="w-12 text-center text-xs font-semibold tracking-wide text-[var(--text-primary)]">
+            <span className="w-10 text-center text-[10px] font-mono font-semibold tracking-wide text-[var(--text-primary)]">
               {(zoom * 100).toFixed(0)}%
             </span>
             <button
               type="button"
               onClick={() => handleZoom(ZOOM_STEP)}
               aria-label="Zoom in"
-              className="rounded-lg border border-[var(--control-border)] bg-[var(--control-surface)] p-1.5 transition hover:bg-[var(--control-surface-hover)] hover:text-[var(--text-primary)]"
+              className="border border-[var(--control-border)] bg-[var(--control-surface)] p-1 transition hover:border-[var(--accent-base)] hover:bg-[var(--control-surface-hover)] hover:text-[var(--accent-base)]"
             >
-              <ZoomIn size={16} />
+              <ZoomIn size={14} />
             </button>
             <button
               type="button"
               onClick={resetZoom}
-              className="text-[11px] font-semibold uppercase tracking-wide text-[var(--text-secondary)] transition hover:text-[var(--text-primary)]"
+              className="text-[10px] font-mono font-semibold uppercase tracking-wide text-[var(--text-secondary)] transition hover:text-[var(--accent-base)]"
             >
-              Reset
+              RST
             </button>
           </div>
           {image && (
             <button
               type="button"
               onClick={onClear}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--control-border)] bg-[var(--control-surface)] text-[var(--text-secondary)] transition hover:bg-[var(--control-surface-hover)] hover:text-[var(--text-primary)]"
+              className="inline-flex items-center justify-center border border-[var(--control-border)] bg-[var(--control-surface)] p-1.5 text-[var(--text-secondary)] transition hover:border-[var(--accent-base)] hover:bg-[var(--control-surface-hover)] hover:text-[var(--accent-base)]"
               title="Clear image and result"
             >
-              <X size={18} />
+              <X size={16} />
               <span className="sr-only">Clear</span>
             </button>
           )}
@@ -205,11 +204,28 @@ export const ImagePreview = ({
           </div>
         )}
         {isProcessing && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[var(--background)]/75 text-[var(--text-primary)] backdrop-blur-sm">
-            <Spinner size={28} />
-            <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
-              {statusMessage}
-            </span>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/90 text-[var(--text-primary)] backdrop-blur-sm">
+            {/* Simple animated grid */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-30">
+              <div className="absolute inset-0" style={{
+                backgroundImage: 'linear-gradient(90deg, transparent 49%, rgba(0, 255, 255, 0.1) 50%, transparent 51%), linear-gradient(0deg, transparent 49%, rgba(0, 255, 255, 0.1) 50%, transparent 51%)',
+                backgroundSize: '60px 60px',
+                animation: 'moveGrid 30s linear infinite'
+              }}></div>
+            </div>
+
+            <div className="relative z-10 flex flex-col items-center gap-6">
+              <span className="font-mono text-2xl font-bold uppercase tracking-wider text-white">
+                {statusMessage}
+              </span>
+              <div className="flex items-center gap-3">
+                <div className="h-4 w-4 rounded-full bg-[var(--accent-pink)]" style={{ animation: 'fadeIn 0.6s ease-in-out infinite' }}></div>
+                <div className="h-4 w-4 rounded-full bg-[var(--accent-pink)]" style={{ animation: 'fadeIn 0.6s ease-in-out 0.2s infinite' }}></div>
+                <div className="h-4 w-4 rounded-full bg-[var(--accent-pink)]" style={{ animation: 'fadeIn 0.6s ease-in-out 0.4s infinite' }}></div>
+                <div className="h-4 w-4 rounded-full bg-[var(--accent-pink)]" style={{ animation: 'fadeIn 0.6s ease-in-out 0.6s infinite' }}></div>
+                <div className="h-4 w-4 rounded-full bg-[var(--accent-pink)]" style={{ animation: 'fadeIn 0.6s ease-in-out 0.8s infinite' }}></div>
+              </div>
+            </div>
           </div>
         )}
       </div>
