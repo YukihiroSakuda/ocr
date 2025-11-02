@@ -60,13 +60,17 @@ app.on('window-all-closed', () => {
 const createWindow = async () => {
   ensureDir(getImageDir());
 
+  const iconPath = IS_DEV
+    ? path.join(__dirname, '../../logo.svg')
+    : path.join(process.resourcesPath, 'logo.svg');
+
   mainWindow = new BrowserWindow({
     width: 1024,
     height: 640,
     show: false,
     autoHideMenuBar: true,
     backgroundColor: '#000000',
-    icon: path.join(__dirname, '../logo.svg'),
+    icon: iconPath,
     webPreferences: {
       preload: PRELOAD_PATH,
       contextIsolation: true,
