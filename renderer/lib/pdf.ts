@@ -1,16 +1,13 @@
 'use client';
 
-let pdfModulePromise: Promise<typeof import('pdfjs-dist')> | null = null;
+import * as pdfjs from 'pdfjs-dist';
+
 let pdfWorkerReady = false;
 
 const resolveAssetUrl = (relativePath: string) =>
   new URL(relativePath, typeof window === 'undefined' ? 'file://' : window.location.href).toString();
 
 const loadPdfJs = async () => {
-  if (!pdfModulePromise) {
-    pdfModulePromise = import('pdfjs-dist');
-  }
-  const pdfjs = await pdfModulePromise;
   if (!pdfWorkerReady) {
     pdfjs.GlobalWorkerOptions.workerSrc = resolveAssetUrl('/pdf.worker.min.mjs');
     pdfWorkerReady = true;
@@ -34,12 +31,31 @@ export interface PdfRenderResult {
   height: number;
 }
 
-export const renderPdfFirstPage = async (base64: string): Promise<PdfRenderResult> => {
+export interface PdfInfo {
+  pageCount: number;
+}
+
+export const getPdfInfo = async (base64: string): Promise<PdfInfo> => {
   const pdfjs = await loadPdfJs();
   const pdfData = base64ToUint8Array(base64);
   const pdf = await pdfjs.getDocument({ data: pdfData }).promise;
-  const firstPage = await pdf.getPage(1);
-  const viewport = firstPage.getViewport({ scale: 2 });
+  const pageCount = pdf.numPages;
+  pdf.cleanup();
+  return { pageCount };
+};
+
+export const renderPdfPage = async (base64: string, pageNumber: number): Promise<PdfRenderResult> => {
+  const pdfjs = await loadPdfJs();
+  const pdfData = base64ToUint8Array(base64);
+  const pdf = await pdfjs.getDocument({ data: pdfData }).promise;
+
+  if (pageNumber < 1 || pageNumber > pdf.numPages) {
+    pdf.cleanup();
+    throw new Error(`Invalid page number: ${pageNumber}. PDF has ${pdf.numPages} pages.`);
+  }
+
+  const page = await pdf.getPage(pageNumber);
+  const viewport = page.getViewport({ scale: 2 });
 
   const canvas = document.createElement('canvas');
   const context = canvas.getContext('2d');
@@ -50,10 +66,10 @@ export const renderPdfFirstPage = async (base64: string): Promise<PdfRenderResul
   canvas.width = viewport.width;
   canvas.height = viewport.height;
 
-  await firstPage.render({ canvasContext: context, viewport }).promise;
+  await page.render({ canvasContext: context, viewport }).promise;
 
   const dataUrl = canvas.toDataURL('image/png');
-  firstPage.cleanup();
+  page.cleanup();
   pdf.cleanup();
 
   return {
@@ -61,4 +77,8 @@ export const renderPdfFirstPage = async (base64: string): Promise<PdfRenderResul
     width: canvas.width,
     height: canvas.height
   };
+};
+
+export const renderPdfFirstPage = async (base64: string): Promise<PdfRenderResult> => {
+  return renderPdfPage(base64, 1);
 };

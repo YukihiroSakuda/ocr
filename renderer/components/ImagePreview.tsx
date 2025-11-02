@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ZoomIn, ZoomOut, Wand2, X } from "lucide-react";
 import type { SourceImage } from "@/store/app-store";
 import { Spinner } from "./common/Spinner";
+import { PdfPageNavigator } from "./PdfPageNavigator";
 
 interface ImagePreviewProps {
   image: SourceImage | null;
@@ -12,6 +13,7 @@ interface ImagePreviewProps {
   isProcessing: boolean;
   statusMessage: string;
   onClear: () => void;
+  onPageChange?: (page: number) => void;
 }
 
 const MIN_ZOOM = 0.4;
@@ -24,6 +26,7 @@ export const ImagePreview = ({
   isProcessing,
   statusMessage,
   onClear,
+  onPageChange,
 }: ImagePreviewProps) => {
   const [zoom, setZoom] = useState(1);
   const [showProcessed, setShowProcessed] = useState(false);
@@ -104,10 +107,20 @@ export const ImagePreview = ({
       className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] text-sm text-[var(--text-primary)] backdrop-blur-xl"
       style={{ boxShadow: "var(--shadow)" }}
     >
-      <div className="flex min-h-[56px] flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] px-4 py-2 text-[var(--text-secondary)]">
-        <span className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--text-secondary)]">
-          Input Image
-        </span>
+      <div className="flex min-h-[56px] flex-nowrap items-center justify-between gap-2 border-b border-[var(--border)] px-4 py-2 text-[var(--text-secondary)] overflow-x-auto">
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--text-secondary)]">
+            Input Image
+          </span>
+          {image?.origin === 'pdf' && image.currentPage && image.totalPages && onPageChange && (
+            <PdfPageNavigator
+              currentPage={image.currentPage}
+              totalPages={image.totalPages}
+              onPageChange={onPageChange}
+              isProcessing={isProcessing}
+            />
+          )}
+        </div>
         <div className="flex items-center gap-2">
           {processedImage && (
             <button

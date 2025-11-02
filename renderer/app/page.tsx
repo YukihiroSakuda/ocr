@@ -51,6 +51,7 @@ function HomePage() {
     setUserText,
     error,
     clearAll,
+    changePdfPage,
   } = useAppStore(
     useShallow((state) => ({
       initialize: state.initialize,
@@ -74,6 +75,7 @@ function HomePage() {
       setUserText: state.setUserText,
       error: state.error,
       clearAll: state.clearAll,
+      changePdfPage: state.changePdfPage,
     }))
   );
 
@@ -255,6 +257,7 @@ function HomePage() {
                   isProcessing={isProcessing}
                   statusMessage={statusMessage}
                   onClear={clearAll}
+                  onPageChange={changePdfPage}
                 />
               </div>
               <div className="flex min-h-0 w-full">

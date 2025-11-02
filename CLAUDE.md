@@ -124,6 +124,22 @@ ocr/
 7. **Main process** persists to SQLite, broadcasts `history:updated` event
 8. **Renderer** refreshes history list via IPC listener
 
+### PDF Processing (`renderer/lib/pdf.ts`)
+
+**Multi-page PDF Support:**
+- `getPdfInfo(base64)` - Retrieves PDF metadata (page count)
+- `renderPdfPage(base64, pageNumber)` - Renders specific page as PNG image
+- `renderPdfFirstPage(base64)` - Convenience wrapper for page 1
+
+**PDF Navigation:**
+- When PDF is loaded, `SourceImage` stores:
+  - `pdfData` - Base64 encoded PDF for re-rendering pages
+  - `currentPage` - Currently displayed page number
+  - `totalPages` - Total number of pages in PDF
+- `PdfPageNavigator` component shows page controls when viewing PDFs
+- `changePdfPage(pageNumber)` action re-renders selected page and re-runs OCR
+- Each page change saves a new rendered image to disk
+
 ### OCR Pipeline (`renderer/lib/ocr.ts`)
 
 1. **Preprocessing** (`preprocessImage`):
@@ -254,3 +270,5 @@ CREATE TABLE history (
 - **Theme persistence**: Settings store syncs with `nativeTheme.themeSource` in main process
 - **Drag & drop**: In Electron, File objects have a `path` property that provides absolute file paths. Type it as `File & { path: string }` to avoid TypeScript errors
 - **Drag overlay**: Visual feedback is shown via `isDragging` state when files are dragged over the main element
+- **Multi-page PDFs**: Full PDF data is stored in `SourceImage.pdfData` to enable page navigation without re-uploading. Each page change re-renders the selected page and performs OCR
+- **PDF memory**: Large PDFs keep full file in memory as base64. Consider adding cleanup when switching to non-PDF images

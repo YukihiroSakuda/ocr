@@ -10,7 +10,7 @@ import type {
   ImageDialogResult
 } from '@/types/desktop';
 import { runOCR } from '@/lib/ocr';
-import { renderPdfFirstPage } from '@/lib/pdf';
+import { renderPdfFirstPage, renderPdfPage, getPdfInfo } from '@/lib/pdf';
 
 type ImageOrigin = 'clipboard' | 'file' | 'pdf' | 'history';
 
@@ -20,6 +20,9 @@ export interface SourceImage {
   width?: number;
   height?: number;
   origin: ImageOrigin;
+  pdfData?: string;
+  currentPage?: number;
+  totalPages?: number;
 }
 
 export interface RecognitionState {
@@ -48,6 +51,7 @@ export interface RecognitionState {
   updateSettings: (patch: Partial<AppSettings>) => Promise<void>;
   setUserText: (value: string) => void;
   clearAll: () => void;
+  changePdfPage: (pageNumber: number) => Promise<void>;
 }
 
 const normalizeText = (text: string, settings: AppSettings['textNormalization']) => {
@@ -102,6 +106,7 @@ const prepareDialogImage = async (result: ImageDialogResult | null): Promise<Sou
   }
 
   if (result.type === 'pdf') {
+    const pdfInfo = await getPdfInfo(result.data);
     const rendered = await renderPdfFirstPage(result.data);
     const api = getDesktopAPI();
     if (!api) {
@@ -116,7 +121,10 @@ const prepareDialogImage = async (result: ImageDialogResult | null): Promise<Sou
       dataUrl: rendered.dataUrl,
       width: rendered.width,
       height: rendered.height,
-      origin: 'pdf'
+      origin: 'pdf',
+      pdfData: result.data,
+      currentPage: 1,
+      totalPages: pdfInfo.pageCount
     };
   }
 
@@ -316,6 +324,52 @@ export const useAppStore = create<RecognitionState>((set, get) => ({
       error: null,
       lastProcessedAt: null
     });
+  },
+
+  changePdfPage: async (pageNumber: number) => {
+    const current = get().sourceImage;
+    if (!current || current.origin !== 'pdf' || !current.pdfData || !current.totalPages) {
+      return;
+    }
+
+    if (pageNumber < 1 || pageNumber > current.totalPages) {
+      set({ error: `Invalid page number: ${pageNumber}` });
+      return;
+    }
+
+    if (pageNumber === current.currentPage) {
+      return;
+    }
+
+    set({ isProcessing: true, error: null, statusMessage: `Loading page ${pageNumber}...` });
+
+    try {
+      const rendered = await renderPdfPage(current.pdfData, pageNumber);
+      const api = getDesktopAPI();
+      if (!api) {
+        throw new Error('Desktop bridge is not available.');
+      }
+
+      const { filePath } = await api.saveDataUrl({
+        dataUrl: rendered.dataUrl,
+        prefix: 'pdf-page'
+      });
+
+      const updatedImage: SourceImage = {
+        ...current,
+        filePath,
+        dataUrl: rendered.dataUrl,
+        width: rendered.width,
+        height: rendered.height,
+        currentPage: pageNumber
+      };
+
+      set({ sourceImage: updatedImage, statusMessage: `Page ${pageNumber} loaded` });
+      await processImage(updatedImage, set, get);
+    } catch (error) {
+      console.error('Failed to change PDF page:', error);
+      set({ error: 'Failed to load PDF page.', isProcessing: false });
+    }
   }
 }));
 
