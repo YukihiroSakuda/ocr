@@ -8,6 +8,7 @@ import {
   shell
 } from 'electron';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import fs from 'node:fs/promises';
 import { existsSync, mkdirSync, rmSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
@@ -35,7 +36,7 @@ const getRendererUrl = () => {
     return DEV_URL;
   }
   const indexPath = path.join(getRendererRoot(), 'index.html');
-  return `file://${indexPath}`;
+  return pathToFileURL(indexPath).href;
 };
 
 const ensureDir = (dir: string) => {
