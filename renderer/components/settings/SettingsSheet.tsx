@@ -35,8 +35,8 @@ const ToggleRow = ({
         onChange={(event) => onChange(event.target.checked)}
         className="peer absolute inset-0 h-full w-full cursor-pointer opacity-0"
       />
-      <span className="absolute inset-0 border border-[var(--text-tertiary)] bg-[var(--background-muted)] transition peer-checked:border-[var(--accent-base)] peer-checked:bg-[var(--accent-base)]/20 peer-hover:border-[var(--accent-base)]" />
-      <span className="absolute left-0.5 h-4 w-4 border border-[var(--text-tertiary)] bg-[var(--text-tertiary)] transition peer-checked:translate-x-5 peer-checked:border-[var(--accent-base)] peer-checked:bg-[var(--accent-base)]" />
+      <span className="absolute inset-0 rounded-full border border-[var(--text-tertiary)] bg-[var(--background-muted)] transition peer-checked:border-[var(--accent-base)] peer-checked:bg-[var(--accent-base)]/20 peer-hover:border-[var(--accent-base)]" />
+      <span className="absolute left-0.5 h-4 w-4 rounded-full border border-[var(--text-tertiary)] bg-[var(--text-tertiary)] transition peer-checked:translate-x-5 peer-checked:border-[var(--accent-base)] peer-checked:bg-[var(--accent-base)]" />
     </span>
   </label>
 );

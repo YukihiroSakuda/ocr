@@ -327,45 +327,43 @@ const registerStaticAssets = () => {
   }
 
   const rendererRoot = getRendererRoot();
-  protocol.interceptFileProtocol('file', (request, callback) => {
-    const decodedUrl = decodeURI(request.url);
 
-    if (decodedUrl.startsWith('file:///_next/')) {
-      const relative = decodedUrl.replace('file:///_next/', '');
-      callback({ path: path.join(rendererRoot, '_next', relative) });
+  protocol.interceptFileProtocol('file', (request, callback) => {
+    let url = request.url.replace('file:///', '');
+
+    // Handle paths that start with drive letter (e.g., C:/_next/...)
+    if (/^[A-Z]:\//.test(url)) {
+      const parts = url.split('/');
+      // Remove drive letter and reconstruct path
+      if (parts[1] === '_next' || parts[1] === 'tesseract' || parts[1] === 'tessdata' || parts[1] === 'favicon.ico') {
+        parts.shift(); // Remove drive letter
+        url = parts.join('/');
+      }
+    }
+
+    // Now process the cleaned URL
+    if (url.startsWith('_next/')) {
+      callback({ path: path.join(rendererRoot, url) });
       return;
     }
 
-    if (decodedUrl === 'file:///favicon.ico') {
+    if (url === 'favicon.ico') {
       callback({ path: path.join(rendererRoot, 'favicon.ico') });
       return;
     }
 
-    if (decodedUrl.startsWith('file:///_vercel/')) {
-      const relative = decodedUrl.replace('file:///_vercel/', '');
-      callback({ path: path.join(rendererRoot, '_vercel', relative) });
+    if (url.startsWith('tesseract/')) {
+      callback({ path: path.join(rendererRoot, url) });
       return;
     }
 
-    if (decodedUrl.startsWith('file:///_next-static/')) {
-      const relative = decodedUrl.replace('file:///', '');
-      callback({ path: path.join(rendererRoot, relative) });
+    if (url.startsWith('tessdata/')) {
+      callback({ path: path.join(rendererRoot, url) });
       return;
     }
 
-    if (decodedUrl.startsWith('file:///tesseract/')) {
-      const relative = decodedUrl.replace('file:///tesseract/', '');
-      callback({ path: path.join(rendererRoot, 'tesseract', relative) });
-      return;
-    }
-
-    if (decodedUrl.startsWith('file:///tessdata/')) {
-      const relative = decodedUrl.replace('file:///tessdata/', '');
-      callback({ path: path.join(rendererRoot, 'tessdata', relative) });
-      return;
-    }
-
-    callback({ path: decodedUrl.replace('file:///', '') });
+    // Default: treat as absolute path
+    callback({ path: url });
   });
 };
 

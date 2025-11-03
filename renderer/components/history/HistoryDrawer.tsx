@@ -136,7 +136,7 @@ export const HistoryDrawer = ({
                       <button
                         type="button"
                         onClick={() => onDelete(entry.id)}
-                        className="border border-transparent px-2 py-1 font-mono text-[9px] font-semibold uppercase tracking-wide text-[var(--text-secondary)] transition hover:border-red-500/50 hover:text-red-400"
+                        className="border border-transparent px-2 py-1 font-mono text-[9px] font-semibold uppercase tracking-wide text-[var(--text-secondary)] transition hover:border-[var(--accent-base)] hover:text-[var(--accent-base)]"
                       >
                         DEL
                       </button>
