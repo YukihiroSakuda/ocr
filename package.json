@@ -1,6 +1,6 @@
 {
   "name": "screenshot-ocr-app",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Desktop screenshot OCR app using Electron, Next.js, and Tailwind.",
   "author": "Yukihiro Sakuda",
