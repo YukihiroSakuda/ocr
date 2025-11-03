@@ -35,6 +35,10 @@
       {
         "from": "renderer/out",
         "to": "renderer"
+      },
+      {
+        "from": "logo.ico",
+        "to": "logo.ico"
       }
     ],
     "win": {

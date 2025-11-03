@@ -61,8 +61,8 @@ const createWindow = async () => {
   ensureDir(getImageDir());
 
   const iconPath = IS_DEV
-    ? path.join(__dirname, '../../logo.svg')
-    : path.join(process.resourcesPath, 'logo.svg');
+    ? path.join(__dirname, '../../logo.ico')
+    : path.join(process.resourcesPath, 'logo.ico');
 
   mainWindow = new BrowserWindow({
     width: 1024,
@@ -92,7 +92,7 @@ const createWindow = async () => {
     console.log('[Renderer] Finished loading', url);
   });
 
-  if (!IS_DEV) {
+  if (IS_DEV) {
     mainWindow.webContents.openDevTools({ mode: 'detach' });
   }
 

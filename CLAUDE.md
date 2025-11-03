@@ -179,7 +179,7 @@ CREATE TABLE history (
 **Settings** (`electron/storage/settings.ts`):
 - Stored as JSON file in `userData/settings.json`
 - Schema defined in `settingsSchema.ts`
-- Includes: language, theme, text normalization options, auto behaviors
+- Includes: language, text normalization options, auto behaviors
 
 **Image Files**:
 - Saved in `userData/images/` directory
@@ -206,10 +206,49 @@ CREATE TABLE history (
 - Main process types in `electron/storage/` for database models
 
 ### Styling
-- Tailwind v4 with CSS variables for theming
-- Dark mode via `data-theme` attribute on `<html>`
-- Theme controlled by settings store + `applyTheme()` in page.tsx
-- All colors use semantic tokens (`primary`, `accent`, `surface`)
+- **Design System**: Sharp tech-focused cyberpunk aesthetic with neon colors
+- **Color Palette**:
+  - Primary accent: Cyan (`#00ffff`)
+  - Secondary accent: Pink (`#ff0080`) - used sparingly for highlights
+  - Background: Pure black (`#000000`) with subtle gradients
+- **Dark Mode Only**: App is locked to dark mode (theme switching removed)
+- **CSS Architecture**: Tailwind v4 with CSS custom properties
+- **Typography**: JetBrains Mono for monospace, Manrope for sans-serif
+- All colors use semantic tokens via CSS variables (`--primary`, `--accent-pink`, `--surface`, etc.)
+- Consistent use of sharp edges, no rounded corners, monospace fonts for tech aesthetic
+
+## UI Design Conventions
+
+### Visual Language
+- **Sharp, tech-focused aesthetic**: No rounded corners, use sharp angles and straight edges
+- **Neon cyberpunk theme**: Black backgrounds with cyan and pink neon accents
+- **Monospace typography**: Use `font-mono` for technical elements (file sizes, metadata, upload zones)
+- **Uppercase labels**: Technical labels and buttons often use uppercase with letter-spacing
+- **Minimal use of pink**: Pink (`--accent-pink`) is reserved for specific highlights:
+  - O, C, R letters in "OPTICAL CHARACTER RECOGNITION" header
+  - Animated dots in processing overlay
+  - Success message borders/text
+- **Cyan as primary**: All other interactive elements use cyan (`--accent-base`)
+
+### CSS Custom Properties
+All colors are defined in `renderer/app/globals.css`:
+```css
+--background: #000000;           /* Pure black */
+--accent-base: #00ffff;          /* Cyan - primary accent */
+--accent-pink: #ff0080;          /* Pink - secondary accent (use sparingly) */
+--text-primary: #ffffff;         /* White text */
+--text-secondary: rgba(255, 255, 255, 0.85);  /* High contrast gray */
+--text-muted: rgba(255, 255, 255, 0.65);      /* Medium contrast gray */
+--text-tertiary: rgba(255, 255, 255, 0.45);   /* Low contrast gray */
+--glow: 0 0 20px rgba(0, 255, 255, 0.3);      /* Cyan glow effect */
+--glow-pink: 0 0 20px rgba(255, 0, 128, 0.4); /* Pink glow effect */
+```
+
+### Animation Patterns
+- **Grid animations**: Moving grid backgrounds for loading states (`@keyframes moveGrid`)
+- **Pulse effects**: Fading dots for processing indicators (`@keyframes fadeIn`)
+- **Staggered delays**: Sequential animations with 0.2s intervals for visual interest
+- **Subtle motion**: Animations should be smooth and not overwhelming (30s durations for ambient effects)
 
 ## Common Development Tasks
 
@@ -267,7 +306,6 @@ CREATE TABLE history (
 - **OpenCV loading**: WASM module loads asynchronously; `waitForOpenCV()` handles timing
 - **SQLite transactions**: better-sqlite3 is synchronous; no async needed
 - **History limits**: Enforced automatically via `setMaxEntries()` after each insert
-- **Theme persistence**: Settings store syncs with `nativeTheme.themeSource` in main process
 - **Drag & drop**: In Electron, File objects have a `path` property that provides absolute file paths. Type it as `File & { path: string }` to avoid TypeScript errors
 - **Drag overlay**: Visual feedback is shown via `isDragging` state when files are dragged over the main element
 - **Multi-page PDFs**: Full PDF data is stored in `SourceImage.pdfData` to enable page navigation without re-uploading. Each page change re-renders the selected page and performs OCR

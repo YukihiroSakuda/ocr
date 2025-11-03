@@ -46,7 +46,6 @@ const ensureWorker = async (
       workerPromise = null;
     }
 
-    console.log('[OCR] Creating worker with language:', language);
     workerPromise = (async () => {
       const worker = (await createWorker(language, undefined, {
         workerPath: resolveAssetUrl('/tesseract/worker.min.js'),
@@ -68,11 +67,8 @@ const ensureWorker = async (
       });
 
       currentLanguage = language;
-      console.log('[OCR] Worker initialized successfully with language:', language);
       return worker;
     })();
-  } else {
-    console.log('[OCR] Using cached worker for language:', currentLanguage);
   }
 
   return await workerPromise;
@@ -88,11 +84,9 @@ export const runOCR = async (
   language: string,
   onProgress?: (progress: number, status?: string) => void
 ): Promise<OCRResult> => {
-  console.log('[OCR] Starting OCR with language:', language);
   const worker = await ensureWorker(language, onProgress);
   try {
     const { data } = await worker.recognize(input);
-    console.log('[OCR] OCR completed. Confidence:', data.confidence, 'Text length:', data.text.length);
     return {
       text: data.text,
       confidence: data.confidence
@@ -120,7 +114,6 @@ const waitForOpenCV = async (): Promise<OpenCVModule> => {
       const check = () => {
         const cvCandidate = (window as unknown as { cv?: OpenCVModule }).cv;
         if (cvCandidate && typeof cvCandidate.imread === 'function') {
-          console.log('[OpenCV] Initialized successfully in', Math.round(performance.now() - start), 'ms');
           resolve(cvCandidate);
         } else if (performance.now() - start > timeoutMs) {
           reject(new Error('OpenCV runtime initialization timed out.'));
