@@ -22,7 +22,7 @@ export function UploadZone({
         type="button"
         onClick={onClipboard}
         disabled={isProcessing}
-        className="group relative flex min-h-0 w-full flex-col items-center justify-center border border-[var(--border-strong)] bg-[var(--surface)] p-8 transition-all hover:border-[var(--accent-base)] hover:bg-[var(--surface-raised)] disabled:cursor-not-allowed disabled:opacity-50"
+        className="group relative flex min-h-0 w-full flex-col items-center justify-center border border-[var(--border-strong)] bg-[var(--surface)] p-8 transition-all hover:border-[var(--accent-base)] hover:bg-[var(--surface-raised)] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
         style={{ boxShadow: 'var(--shadow)' }}
       >
         <div className="absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100" style={{ boxShadow: 'var(--glow)' }}></div>
@@ -35,12 +35,15 @@ export function UploadZone({
             Clipboard
           </h2>
 
-          <div className="flex flex-col items-center gap-2 text-center">
-            <p className="font-mono text-[10px] leading-relaxed text-[var(--text-secondary)] uppercase tracking-wide">
-              Direct access to system clipboard buffer. Reads image data from memory without disk I/O operations. Supports PNG, JPEG, BMP formats in native image buffer.
+          <div className="flex flex-col items-center gap-3 text-center">
+            <p className="font-mono text-sm leading-relaxed text-[var(--text-secondary)] uppercase tracking-wide">
+              Process image from clipboard
             </p>
-            <p className="font-mono text-[9px] text-[var(--text-tertiary)] uppercase tracking-wide">
-              Click to initialize clipboard read operation
+            <p className="font-mono text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider">
+              PNG / JPEG / BMP
+            </p>
+            <p className="font-mono text-[10px] text-[var(--accent-base)] uppercase tracking-wide border border-[var(--accent-base)]/30 px-3 py-1">
+              [ CLICK TO SCAN ]
             </p>
           </div>
         </div>
@@ -51,7 +54,7 @@ export function UploadZone({
         type="button"
         onClick={onFile}
         disabled={isProcessing}
-        className="group relative flex min-h-0 w-full flex-col items-center justify-center border border-[var(--border-strong)] bg-[var(--surface)] p-8 transition-all hover:border-[var(--accent-base)] hover:bg-[var(--surface-raised)] disabled:cursor-not-allowed disabled:opacity-50"
+        className="group relative flex min-h-0 w-full flex-col items-center justify-center border border-[var(--border-strong)] bg-[var(--surface)] p-8 transition-all hover:border-[var(--accent-base)] hover:bg-[var(--surface-raised)] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
         style={{ boxShadow: 'var(--shadow)' }}
       >
         <div className="absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100" style={{ boxShadow: 'var(--glow)' }}></div>
@@ -61,15 +64,18 @@ export function UploadZone({
           </div>
 
           <h3 className="text-2xl font-bold tracking-tight text-[var(--text-primary)] font-mono uppercase">
-            Select File
+            File Upload
           </h3>
 
-          <div className="flex flex-col items-center gap-2 text-center">
-            <p className="font-mono text-[10px] leading-relaxed text-[var(--text-secondary)] uppercase tracking-wide">
-              Import image files from local file system. Supports drag & drop file transfer protocol. Handles raster image formats (PNG, JPG, BMP) and vector PDF documents with automatic page rendering.
+          <div className="flex flex-col items-center gap-3 text-center">
+            <p className="font-mono text-sm leading-relaxed text-[var(--text-secondary)] uppercase tracking-wide">
+              Select image or PDF from disk
             </p>
-            <p className="font-mono text-[9px] text-[var(--text-tertiary)] uppercase tracking-wide">
-              Click to open file dialog / Drag files into zone
+            <p className="font-mono text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider">
+              PNG / JPG / PDF / BMP / TIFF
+            </p>
+            <p className="font-mono text-[10px] text-[var(--accent-base)] uppercase tracking-wide border border-[var(--accent-base)]/30 px-3 py-1">
+              [ CLICK TO BROWSE / DRAG & DROP ]
             </p>
           </div>
         </div>
@@ -79,7 +85,7 @@ export function UploadZone({
             <div className="space-y-3 text-center">
               <Upload size={48} className="mx-auto text-[var(--accent-base)]" />
               <p className="font-mono text-lg font-bold text-[var(--accent-base)] uppercase tracking-wide">
-                DROP TO UPLOAD
+                [ DROP TO PROCESS ]
               </p>
             </div>
           </div>
