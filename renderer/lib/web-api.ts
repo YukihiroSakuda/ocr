@@ -1,6 +1,7 @@
 // Web API wrappers for clipboard and file operations
 
-import { db, type ImageData } from './indexeddb';
+import { db } from './indexeddb';
+import type { ImageData } from './indexeddb';
 
 export interface ClipboardImageResult {
   filePath: string;
@@ -102,7 +103,7 @@ export async function writeClipboardText(text: string): Promise<void> {
 }
 
 // File operations
-export async function processFile(file: File): Promise<ImageDialogResult> {
+export async function processFile(file: File): Promise<FileImageResult | FilePdfResult> {
   const filePath = generateFilePath(file.name.replace(/\.[^.]+$/, ''));
 
   if (file.type === 'application/pdf') {

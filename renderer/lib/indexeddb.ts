@@ -7,7 +7,7 @@ const IMAGES_STORE = 'images';
 const SETTINGS_STORE = 'settings';
 
 export interface HistoryEntry {
-  id?: number;
+  id: number;
   createdAt: string;
   imagePath: string;
   textResult: string;
@@ -24,7 +24,7 @@ export interface ImageData {
 
 export interface SettingsData {
   key: string;
-  value: any;
+  value: unknown;
 }
 
 class IndexedDBManager {
@@ -96,7 +96,10 @@ class IndexedDBManager {
       request.onsuccess = () => {
         const cursor = request.result;
         if (cursor && results.length < limit) {
-          results.push(cursor.value);
+          const value = cursor.value as HistoryEntry;
+          if (value.id !== undefined) {
+            results.push(value);
+          }
           cursor.continue();
         } else {
           resolve(results);
@@ -169,7 +172,7 @@ class IndexedDBManager {
   }
 
   // Settings methods (using key-value pairs)
-  async saveSetting(key: string, value: any): Promise<void> {
+  async saveSetting(key: string, value: unknown): Promise<void> {
     const db = await this.openDB();
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([SETTINGS_STORE], 'readwrite');
@@ -181,7 +184,7 @@ class IndexedDBManager {
     });
   }
 
-  async getSetting(key: string): Promise<any | undefined> {
+  async getSetting(key: string): Promise<unknown | undefined> {
     const db = await this.openDB();
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([SETTINGS_STORE], 'readonly');
