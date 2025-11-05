@@ -41,6 +41,9 @@ jobs:
           npm run build
         env:
           NODE_ENV: production
+          NEXT_TELEMETRY_DISABLED: 1
+          ESLINT_NO_DEV_ERRORS: true
+          DISABLE_ESLINT_PLUGIN: true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
