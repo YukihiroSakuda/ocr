@@ -4,8 +4,22 @@ import * as pdfjs from 'pdfjs-dist';
 
 let pdfWorkerReady = false;
 
-const resolveAssetUrl = (relativePath: string) =>
-  new URL(relativePath, typeof window === 'undefined' ? 'file://' : window.location.href).toString();
+const getBasePath = () => {
+  if (typeof window === 'undefined') return '';
+  // Get the base path from the current URL
+  const pathArray = window.location.pathname.split('/');
+  // If running on GitHub Pages with /ocr/ path
+  if (pathArray[1] === 'ocr') {
+    return '/ocr';
+  }
+  return '';
+};
+
+const resolveAssetUrl = (relativePath: string) => {
+  const basePath = getBasePath();
+  const fullPath = basePath + relativePath;
+  return new URL(fullPath, typeof window === 'undefined' ? 'file://' : window.location.origin).toString();
+};
 
 const loadPdfJs = async () => {
   if (!pdfWorkerReady) {
