@@ -3,14 +3,13 @@
 import { create } from 'zustand';
 import type {
   AppSettings,
-  ClipboardImageResult,
-  DesktopAPI,
   HistoryEntry,
   HistoryInput,
-  ImageDialogResult
 } from '@/types/desktop';
 import { runOCR } from '@/lib/ocr';
 import { renderPdfFirstPage, renderPdfPage, getPdfInfo } from '@/lib/pdf';
+import { db } from '@/lib/indexeddb';
+import * as webAPI from '@/lib/web-api';
 
 type ImageOrigin = 'clipboard' | 'file' | 'pdf' | 'history';
 
@@ -42,8 +41,7 @@ export interface RecognitionState {
   initialize: () => Promise<void>;
   refreshHistory: () => Promise<void>;
   processClipboard: () => Promise<void>;
-  processFileSelection: () => Promise<void>;
-  processDroppedFile: (filePath: string) => Promise<void>;
+  processFile: (file: File) => Promise<void>;
   rerunOCR: () => Promise<void>;
   applyHistoryEntry: (entry: HistoryEntry) => Promise<void>;
   deleteHistoryEntry: (id: number) => Promise<void>;
@@ -68,70 +66,49 @@ const normalizeText = (text: string, settings: AppSettings['textNormalization'])
   return output;
 };
 
-const getDesktopAPI = (): DesktopAPI | null => {
+// Default settings
+const DEFAULT_SETTINGS: AppSettings = {
+  language: 'jpn+eng',
+  autoCopy: false,
+  autoProcessClipboard: false,
+  textNormalization: {
+    trimWhitespace: true,
+    collapseWhitespace: true,
+    removeLineBreaks: false,
+  },
+};
+
+// Settings management using localStorage
+const SETTINGS_KEY = 'ocr-app-settings';
+
+function loadSettings(): AppSettings {
   if (typeof window === 'undefined') {
-    return null;
-  }
-  return window.desktopAPI ?? null;
-};
-
-const prepareClipboardImage = async (result: ClipboardImageResult | null): Promise<SourceImage | null> => {
-  if (!result) {
-    return null;
-  }
-  return {
-    filePath: result.filePath,
-    dataUrl: result.dataUrl,
-    width: result.width,
-    height: result.height,
-    origin: 'clipboard'
-  };
-};
-
-const prepareDialogImage = async (result: ImageDialogResult | null): Promise<SourceImage | null> => {
-  if (!result) {
-    return null;
+    return DEFAULT_SETTINGS;
   }
 
-  if (result.type === 'image') {
-    const api = getDesktopAPI();
-    const dataUrl =
-      result.dataUrl ??
-      (api ? await api.readFileDataUrl(result.filePath) : `file://${result.filePath}`);
-    return {
-      filePath: result.filePath,
-      dataUrl,
-      origin: 'file'
-    };
-  }
-
-  if (result.type === 'pdf') {
-    const pdfInfo = await getPdfInfo(result.data);
-    const rendered = await renderPdfFirstPage(result.data);
-    const api = getDesktopAPI();
-    if (!api) {
-      throw new Error('Desktop bridge is not available.');
+  try {
+    const stored = localStorage.getItem(SETTINGS_KEY);
+    if (stored) {
+      return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
     }
-    const { filePath } = await api.saveDataUrl({
-      dataUrl: rendered.dataUrl,
-      prefix: 'pdf-page'
-    });
-    return {
-      filePath,
-      dataUrl: rendered.dataUrl,
-      width: rendered.width,
-      height: rendered.height,
-      origin: 'pdf',
-      pdfData: result.data,
-      currentPage: 1,
-      totalPages: pdfInfo.pageCount
-    };
+  } catch (error) {
+    console.error('Failed to load settings:', error);
   }
 
-  return null;
-};
+  return DEFAULT_SETTINGS;
+}
 
-let unsubscribeHistory: (() => void) | null = null;
+function saveSettings(settings: AppSettings): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  } catch (error) {
+    console.error('Failed to save settings:', error);
+  }
+}
 
 export const useAppStore = create<RecognitionState>((set, get) => ({
   sourceImage: null,
@@ -149,28 +126,18 @@ export const useAppStore = create<RecognitionState>((set, get) => ({
   desktopReady: false,
 
   initialize: async () => {
-    const api = getDesktopAPI();
-    if (!api) {
-      set({ error: 'Desktop API is unavailable.' });
+    if (typeof window === 'undefined') {
       return;
     }
 
     try {
-      const settings = await api.getSettings();
+      const settings = loadSettings();
       set({ settings, desktopReady: true, error: null });
 
       await get().refreshHistory();
 
-      if (settings.autoProcessClipboard) {
-        await get().processClipboard();
-      }
-
-      if (unsubscribeHistory) {
-        unsubscribeHistory();
-      }
-      unsubscribeHistory = api.onHistoryUpdated(async () => {
-        await get().refreshHistory();
-      });
+      // Auto-process clipboard is not automatically supported in web
+      // Users must click a button to access clipboard due to permissions
     } catch (error) {
       console.error(error);
       set({ error: 'Failed to initialize application.' });
@@ -178,11 +145,9 @@ export const useAppStore = create<RecognitionState>((set, get) => ({
   },
 
   refreshHistory: async () => {
-    const api = getDesktopAPI();
-    if (!api) return;
     set({ isHistoryLoading: true });
     try {
-      const history = await api.listHistory();
+      const history = await db.getHistory(200);
       set({ history, isHistoryLoading: false });
     } catch (error) {
       console.error(error);
@@ -191,54 +156,87 @@ export const useAppStore = create<RecognitionState>((set, get) => ({
   },
 
   processClipboard: async () => {
-    const api = getDesktopAPI();
-    if (!api) {
-      set({ error: 'Clipboard access is unavailable.' });
-      return;
-    }
     if (get().isProcessing) {
       return;
     }
-    set({ error: null });
-    const image = await prepareClipboardImage(await api.getClipboardImage());
-    if (!image) {
-      return;
+
+    set({ error: null, statusMessage: 'Accessing clipboard...' });
+
+    try {
+      const clipboardResult = await webAPI.getClipboardImage();
+
+      if (!clipboardResult) {
+        set({ error: 'No image found in clipboard.', statusMessage: '' });
+        return;
+      }
+
+      const image: SourceImage = {
+        filePath: clipboardResult.filePath,
+        dataUrl: clipboardResult.dataUrl,
+        width: clipboardResult.width,
+        height: clipboardResult.height,
+        origin: 'clipboard',
+      };
+
+      await processImage(image, set, get);
+    } catch (error) {
+      console.error(error);
+      set({
+        error: 'Failed to access clipboard. Please make sure you granted clipboard permissions.',
+        statusMessage: '',
+        isProcessing: false,
+      });
     }
-    await processImage(image, set, get);
   },
 
-  processFileSelection: async () => {
-    const api = getDesktopAPI();
-    if (!api) {
-      set({ error: 'File dialog is unavailable.' });
-      return;
-    }
+  processFile: async (file: File) => {
     if (get().isProcessing) {
       return;
     }
-    set({ error: null });
-    const image = await prepareDialogImage(await api.openImageDialog());
-    if (!image) {
-      return;
-    }
-    await processImage(image, set, get);
-  },
 
-  processDroppedFile: async (filePath: string) => {
-    const api = getDesktopAPI();
-    if (!api) {
-      set({ error: 'File processing is unavailable.' });
-      return;
+    set({ error: null, statusMessage: 'Processing file...' });
+
+    try {
+      const fileResult = await webAPI.processFile(file);
+
+      if (fileResult.type === 'pdf') {
+        const pdfInfo = await getPdfInfo(fileResult.data);
+        const rendered = await renderPdfFirstPage(fileResult.data);
+
+        const { filePath } = await webAPI.saveDataUrl({
+          dataUrl: rendered.dataUrl,
+          prefix: 'pdf-page',
+        });
+
+        const image: SourceImage = {
+          filePath,
+          dataUrl: rendered.dataUrl,
+          width: rendered.width,
+          height: rendered.height,
+          origin: 'pdf',
+          pdfData: fileResult.data,
+          currentPage: 1,
+          totalPages: pdfInfo.pageCount,
+        };
+
+        await processImage(image, set, get);
+      } else {
+        const image: SourceImage = {
+          filePath: fileResult.filePath,
+          dataUrl: fileResult.dataUrl,
+          origin: 'file',
+        };
+
+        await processImage(image, set, get);
+      }
+    } catch (error) {
+      console.error(error);
+      set({
+        error: 'Failed to process file.',
+        statusMessage: '',
+        isProcessing: false,
+      });
     }
-    if (get().isProcessing) {
-      return;
-    }
-    set({ error: null });
-    const image = await prepareDialogImage(await api.processDroppedFile(filePath));
-    if (!image) {
-      return;
-    }
-    await processImage(image, set, get);
   },
 
   rerunOCR: async () => {
@@ -250,24 +248,19 @@ export const useAppStore = create<RecognitionState>((set, get) => ({
   },
 
   applyHistoryEntry: async (entry: HistoryEntry) => {
-    const api = getDesktopAPI();
-    if (!api) {
-      set({ error: 'History is unavailable.' });
-      return;
-    }
     try {
-      const dataUrl = await api.readFileDataUrl(entry.imagePath);
+      const dataUrl = await webAPI.readFileDataUrl(entry.imagePath);
       const image: SourceImage = {
         filePath: entry.imagePath,
         dataUrl,
-        origin: 'history'
+        origin: 'history',
       };
       set({
         sourceImage: image,
         processedImage: null,
         text: entry.textResult,
         confidence: entry.confidence,
-        error: null
+        error: null,
       });
     } catch (error) {
       console.error(error);
@@ -276,10 +269,8 @@ export const useAppStore = create<RecognitionState>((set, get) => ({
   },
 
   deleteHistoryEntry: async (id: number) => {
-    const api = getDesktopAPI();
-    if (!api) return;
     try {
-      await api.deleteHistory(id);
+      await db.deleteHistory(id);
       await get().refreshHistory();
     } catch (error) {
       console.error(error);
@@ -288,10 +279,8 @@ export const useAppStore = create<RecognitionState>((set, get) => ({
   },
 
   clearHistory: async () => {
-    const api = getDesktopAPI();
-    if (!api) return;
     try {
-      await api.clearHistory();
+      await db.clearHistory();
       set({ history: [] });
     } catch (error) {
       console.error(error);
@@ -300,10 +289,10 @@ export const useAppStore = create<RecognitionState>((set, get) => ({
   },
 
   updateSettings: async (patch: Partial<AppSettings>) => {
-    const api = getDesktopAPI();
-    if (!api) return;
     try {
-      const updated = await api.updateSettings(patch);
+      const currentSettings = get().settings || DEFAULT_SETTINGS;
+      const updated = { ...currentSettings, ...patch };
+      saveSettings(updated);
       set({ settings: updated });
     } catch (error) {
       console.error(error);
@@ -322,7 +311,7 @@ export const useAppStore = create<RecognitionState>((set, get) => ({
       text: '',
       confidence: null,
       error: null,
-      lastProcessedAt: null
+      lastProcessedAt: null,
     });
   },
 
@@ -345,14 +334,10 @@ export const useAppStore = create<RecognitionState>((set, get) => ({
 
     try {
       const rendered = await renderPdfPage(current.pdfData, pageNumber);
-      const api = getDesktopAPI();
-      if (!api) {
-        throw new Error('Desktop bridge is not available.');
-      }
 
-      const { filePath } = await api.saveDataUrl({
+      const { filePath } = await webAPI.saveDataUrl({
         dataUrl: rendered.dataUrl,
-        prefix: 'pdf-page'
+        prefix: 'pdf-page',
       });
 
       const updatedImage: SourceImage = {
@@ -361,7 +346,7 @@ export const useAppStore = create<RecognitionState>((set, get) => ({
         dataUrl: rendered.dataUrl,
         width: rendered.width,
         height: rendered.height,
-        currentPage: pageNumber
+        currentPage: pageNumber,
       };
 
       set({ sourceImage: updatedImage, statusMessage: `Page ${pageNumber} loaded` });
@@ -370,7 +355,7 @@ export const useAppStore = create<RecognitionState>((set, get) => ({
       console.error('Failed to change PDF page:', error);
       set({ error: 'Failed to load PDF page.', isProcessing: false });
     }
-  }
+  },
 }));
 
 const processImage = async (
@@ -378,22 +363,7 @@ const processImage = async (
   set: (partial: Partial<RecognitionState>) => void,
   get: () => RecognitionState
 ) => {
-  const api = getDesktopAPI();
-  if (!api) {
-    set({ error: 'Desktop API is unavailable.' });
-    return;
-  }
-
-  const settings = get().settings;
-  if (!settings) {
-    await get().initialize();
-  }
-
-  const effectiveSettings = get().settings;
-  if (!effectiveSettings) {
-    set({ error: 'Failed to load settings.' });
-    return;
-  }
+  const settings = get().settings || DEFAULT_SETTINGS;
 
   set({
     sourceImage: image,
@@ -401,12 +371,12 @@ const processImage = async (
     isProcessing: true,
     progress: 0,
     statusMessage: 'Running OCR…',
-    error: null
+    error: null,
   });
 
   try {
-    const result = await runOCR(image.dataUrl, effectiveSettings.language);
-    const normalizedText = normalizeText(result.text, effectiveSettings.textNormalization);
+    const result = await runOCR(image.dataUrl, settings.language);
+    const normalizedText = normalizeText(result.text, settings.textNormalization);
 
     set({
       text: normalizedText,
@@ -415,30 +385,36 @@ const processImage = async (
       progress: 1,
       statusMessage: 'Completed',
       lastProcessedAt: Date.now(),
-      sourceImage: image
+      sourceImage: image,
     });
 
-    if (effectiveSettings.autoCopy) {
-      api.writeClipboardText(normalizedText).catch((copyError) => {
+    if (settings.autoCopy) {
+      try {
+        await webAPI.writeClipboardText(normalizedText);
+      } catch (copyError) {
         console.warn('Failed to copy text', copyError);
-      });
+      }
     }
 
-    const historyPayload: HistoryInput = {
+    // Save to history
+    const historyId = await db.addHistory({
+      createdAt: new Date().toISOString(),
       imagePath: image.filePath,
       textResult: normalizedText,
       confidence: result.confidence,
-      lang: effectiveSettings.language,
-      engine: 'tesseract-local'
-    };
-    await api.saveHistory(historyPayload);
+      lang: settings.language,
+      engine: 'tesseract-local',
+    });
+
+    // Refresh history to show the new entry
+    await get().refreshHistory();
   } catch (error) {
     console.error(error);
     set({
       error: 'OCR processing failed.',
       isProcessing: false,
       statusMessage: '',
-      progress: 0
+      progress: 0,
     });
   }
 };

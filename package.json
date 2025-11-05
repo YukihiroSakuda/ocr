@@ -1,72 +1,15 @@
 {
-  "name": "screenshot-ocr-app",
+  "name": "ocr-web-app",
   "version": "1.0.0",
   "private": true,
-  "description": "Desktop screenshot OCR app using Electron, Next.js, and Tailwind.",
+  "description": "Web-based OCR app using Next.js and Tailwind CSS",
   "author": "Yukihiro Sakuda",
-  "main": "dist-electron/main.js",
   "scripts": {
-    "dev": "concurrently -k \"npm:renderer:dev\" \"npm:electron:watch\" \"npm:electron:start\"",
-    "renderer:dev": "cd renderer && npm run dev",
-    "renderer:build": "cd renderer && npm run build",
-    "renderer:export": "node -e \"process.exit(0)\"",
-    "renderer:lint": "cd renderer && npm run lint",
-    "electron:watch": "tsc -p tsconfig.electron.json --watch",
-    "electron:start": "wait-on dist-electron/main.js tcp:3000 && cross-env NODE_ENV=development electron .",
-    "electron:build": "tsc -p tsconfig.electron.json",
-    "build": "npm run renderer:build && npm run renderer:export && npm run electron:build",
-    "package": "npm run build && electron-builder",
-    "lint": "npm run renderer:lint",
-    "clean": "rimraf dist-electron renderer/out dist"
+    "dev": "cd renderer && npm run dev",
+    "build": "cd renderer && npm run build",
+    "start": "cd renderer && npm start",
+    "lint": "cd renderer && npm run lint"
   },
-  "build": {
-    "appId": "com.yukihiro.screenshotocr",
-    "productName": "Screenshot OCR App",
-    "directories": {
-      "output": "dist",
-      "buildResources": "build"
-    },
-    "files": [
-      "dist-electron/**/*",
-      "renderer/out/**/*",
-      "package.json"
-    ],
-    "extraResources": [
-      {
-        "from": "renderer/out",
-        "to": "renderer"
-      },
-      {
-        "from": "logo.ico",
-        "to": "logo.ico"
-      }
-    ],
-    "win": {
-      "target": "nsis"
-    },
-    "mac": {
-      "target": "dmg",
-      "icon": "build/icon.icns"
-    },
-    "linux": {
-      "target": "AppImage",
-      "icon": "build/icon.png"
-    }
-  },
-  "dependencies": {
-    "better-sqlite3": "^11.8.1",
-    "screenshot-desktop": "^1.15.2"
-  },
-  "devDependencies": {
-    "@types/better-sqlite3": "^7.6.13",
-    "concurrently": "^9.1.0",
-    "cross-env": "^7.0.3",
-    "electron": "^31.3.1",
-    "electron-builder": "^25.1.8",
-    "electron-rebuild": "^3.2.9",
-    "rimraf": "^5.0.10",
-    "tslib": "^2.8.1",
-    "typescript": "^5.7.2",
-    "wait-on": "^7.2.0"
-  }
+  "dependencies": {},
+  "devDependencies": {}
 }

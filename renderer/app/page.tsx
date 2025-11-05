@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { ImagePreview } from "@/components/ImagePreview";
 import { TextPanel } from "@/components/TextPanel";
@@ -11,6 +11,7 @@ import { LanguageOverlay } from "@/components/settings/LanguageOverlay";
 import { getLanguageLabels, parseLanguageString } from "@/lib/languages";
 import { useAppStore } from "@/store/app-store";
 import { Languages, History, Settings } from "lucide-react";
+import * as webAPI from "@/lib/web-api";
 
 function HomePage() {
   const {
@@ -22,8 +23,7 @@ function HomePage() {
     isProcessing,
     statusMessage,
     processClipboard,
-    processFileSelection,
-    processDroppedFile,
+    processFile,
     rerunOCR,
     history,
     applyHistoryEntry,
@@ -46,8 +46,7 @@ function HomePage() {
       isProcessing: state.isProcessing,
       statusMessage: state.statusMessage,
       processClipboard: state.processClipboard,
-      processFileSelection: state.processFileSelection,
-      processDroppedFile: state.processDroppedFile,
+      processFile: state.processFile,
       rerunOCR: state.rerunOCR,
       history: state.history,
       applyHistoryEntry: state.applyHistoryEntry,
@@ -62,6 +61,8 @@ function HomePage() {
       changePdfPage: state.changePdfPage,
     }))
   );
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [historyOpen, setHistoryOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -95,11 +96,27 @@ function HomePage() {
       return;
     }
     try {
-      await window.desktopAPI.writeClipboardText(text);
+      await webAPI.writeClipboardText(text);
       setFeedback("Copied text to clipboard.");
     } catch (copyError) {
       console.error(copyError);
       setFeedback("Failed to copy text.");
+    }
+  };
+
+  const handleFileSelect = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    await processFile(file);
+
+    // Reset input so same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -123,25 +140,17 @@ function HomePage() {
     if (isProcessing) return;
 
     const files = Array.from(e.dataTransfer.files);
-    const imageFile = files.find((file) =>
-      file.type.startsWith("image/") || file.type === "application/pdf"
+    const file = files.find((f) =>
+      f.type.startsWith("image/") || f.type === "application/pdf"
     );
 
-    if (!imageFile) {
+    if (!file) {
       setFeedback("Please drop an image or PDF file.");
       return;
     }
 
-    // In Electron, File objects have a 'path' property
-    const filePath = (imageFile as File & { path: string }).path;
-
-    if (!filePath) {
-      setFeedback("Could not access file path.");
-      return;
-    }
-
-    // Process the dropped file
-    await processDroppedFile(filePath);
+    // Process the dropped file directly
+    await processFile(file);
   };
 
   return (
@@ -209,9 +218,16 @@ function HomePage() {
 
           {!sourceImage ? (
             <section className="w-full flex-1 min-h-0">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,application/pdf"
+                onChange={handleFileChange}
+                className="hidden"
+              />
               <UploadZone
                 onClipboard={processClipboard}
-                onFile={processFileSelection}
+                onFile={handleFileSelect}
                 isProcessing={isProcessing}
                 isDragging={isDragging}
               />

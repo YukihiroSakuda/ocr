@@ -1,9 +1,14 @@
 import path from 'node:path';
 import type { NextConfig } from 'next';
 
+const isProd = process.env.NODE_ENV === 'production';
+const repoName = 'ocr'; // GitHub repository name
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   output: 'export',
+  basePath: isProd ? `/${repoName}` : '',
+  assetPrefix: isProd ? `/${repoName}/` : '',
   images: {
     unoptimized: true
   },
