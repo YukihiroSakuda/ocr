@@ -71,13 +71,23 @@ const ensureWorker = async (
             progressHandler(message.progress, message.status);
           }
         },
-        legacyCore: false,
+        legacyCore: true,  // Try legacy core for better accuracy
         legacyLang: false
       } satisfies Partial<WorkerOptions>)) as ExtendedWorker;
 
       await worker.setParameters({
-        tessedit_pageseg_mode: PSM.SINGLE_BLOCK,
-        preserve_interword_spaces: '1'
+        tessedit_pageseg_mode: PSM.SPARSE_TEXT,  // Better for screenshots with sparse text
+        preserve_interword_spaces: '1',
+        // Japanese/CJK OCR optimization
+        tessedit_char_blacklist: '①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳',  // Prevent circled numbers
+        tessedit_char_whitelist: '',
+        language_model_ngram_on: '1',  // Enable language model for CJK
+        textord_force_make_prop_words: '0',  // Don't force proportional word spacing
+        edges_max_children_per_outline: '40',  // Increase for complex CJK characters
+        textord_heavy_nr: '1',  // Heavy noise reduction
+        textord_noise_sizefraction: '10',  // Aggressive noise filtering
+        classify_enable_learning: '0',  // Disable adaptive learning (prevents wrong patterns)
+        classify_enable_adaptive_matcher: '0'  // Use only trained data
       });
 
       currentLanguage = language;
@@ -96,11 +106,26 @@ export interface OCRResult {
 export const runOCR = async (
   input: string,
   language: string,
+  psmMode?: string,
   onProgress?: (progress: number, status?: string) => void
 ): Promise<OCRResult> => {
   const worker = await ensureWorker(language, onProgress);
+
+  // Update PSM mode if provided
+  if (psmMode) {
+    const psmValue = (PSM as Record<string, number>)[psmMode];
+    if (psmValue !== undefined) {
+      await worker.setParameters({
+        tessedit_pageseg_mode: psmValue
+      });
+    }
+  }
+
   try {
-    const { data } = await worker.recognize(input);
+    // Upscale small images for better recognition
+    const upscaledInput = await upscaleIfNeeded(input);
+
+    const { data } = await worker.recognize(upscaledInput);
     return {
       text: data.text,
       confidence: data.confidence
@@ -149,6 +174,90 @@ const loadImageElement = (dataUrl: string) =>
     img.onerror = (error) => reject(error);
     img.src = dataUrl;
   });
+
+// Sharpen image for better OCR (simple convolution filter)
+const sharpenImage = (imageData: ImageData): ImageData => {
+  const data = imageData.data;
+  const width = imageData.width;
+  const height = imageData.height;
+  const output = new ImageData(width, height);
+
+  // Sharpening kernel
+  const kernel = [
+    0, -1, 0,
+    -1, 5, -1,
+    0, -1, 0
+  ];
+
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      for (let c = 0; c < 3; c++) { // RGB channels
+        let sum = 0;
+        for (let ky = -1; ky <= 1; ky++) {
+          for (let kx = -1; kx <= 1; kx++) {
+            const idx = ((y + ky) * width + (x + kx)) * 4 + c;
+            const kernelIdx = (ky + 1) * 3 + (kx + 1);
+            sum += data[idx] * kernel[kernelIdx];
+          }
+        }
+        const outIdx = (y * width + x) * 4 + c;
+        output.data[outIdx] = Math.min(255, Math.max(0, sum));
+      }
+      // Copy alpha channel
+      const alphaIdx = (y * width + x) * 4 + 3;
+      output.data[alphaIdx] = data[alphaIdx];
+    }
+  }
+
+  return output;
+};
+
+// Upscale image if too small (Tesseract works best with larger images)
+const upscaleIfNeeded = (dataUrl: string): Promise<string> => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const img = await loadImageElement(dataUrl);
+      const targetMinDimension = 1200; // Target minimum dimension for best OCR
+      const absoluteMinDimension = 800; // Minimum before upscaling
+
+      // If image is large enough, return as-is
+      if (img.width >= targetMinDimension && img.height >= targetMinDimension) {
+        resolve(dataUrl);
+        return;
+      }
+
+      // Calculate scale factor (aim for targetMinDimension on smallest side)
+      const minSide = Math.min(img.width, img.height);
+      const scale = minSide < absoluteMinDimension
+        ? targetMinDimension / minSide
+        : Math.min(3, targetMinDimension / minSide);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.floor(img.width * scale);
+      canvas.height = Math.floor(img.height * scale);
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(dataUrl);
+        return;
+      }
+
+      // Use high-quality image smoothing
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      // Apply sharpening for better character edge detection
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const sharpened = sharpenImage(imageData);
+      ctx.putImageData(sharpened, 0, 0);
+
+      resolve(canvas.toDataURL('image/png'));
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
 
 export interface PreprocessOptions {
   deskew?: boolean;

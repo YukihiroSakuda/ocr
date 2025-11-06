@@ -4,195 +4,159 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Screenshot OCR App is an Electron-based desktop application that extracts text from screenshots, images, and PDFs using local OCR processing (Tesseract.js). The app runs completely offline with no cloud dependencies.
+Screenshot OCR App is a **web-based** application that extracts text from screenshots, images, and PDFs using client-side OCR processing (Tesseract.js). The app runs completely in the browser with no server dependencies - all processing, storage, and logic happens client-side.
 
 **Tech Stack:**
-- **Frontend**: Next.js 15 (App Router) + React 19 + Tailwind CSS 4
-- **Desktop**: Electron 31 (Main/Preload/Renderer architecture)
-- **OCR**: Tesseract.js + OpenCV.js for image preprocessing
-- **State**: Zustand for client state management
-- **Storage**: better-sqlite3 for history persistence
+- **Framework**: Next.js 15 (App Router) + React 19
+- **Styling**: Tailwind CSS 4 with CSS custom properties
+- **OCR Engine**: Tesseract.js (WASM) + OpenCV.js for image preprocessing
+- **State Management**: Zustand for client state
+- **Storage**: IndexedDB for history/images, localStorage for settings
 - **Language**: TypeScript throughout
+- **Deployment**: GitHub Pages (static export)
 
 ## Development Commands
 
 ### Running the App
 ```bash
-# Development mode (runs all 3 processes concurrently)
-npm run dev
+# Install dependencies (root orchestrates renderer build)
+npm install
 
-# What this does:
-# 1. renderer:dev - Next.js dev server on port 3000
-# 2. electron:watch - TypeScript compiler in watch mode for Electron main process
-# 3. electron:start - Launches Electron once Next.js and main.js are ready
+# Start development server
+npm run dev
+# This runs: cd renderer && npm run dev
+# Next.js dev server will start on http://localhost:3000
 ```
 
 ### Building
 ```bash
-# Build everything for production
+# Build for production
 npm run build
-
-# Individual build steps:
-npm run renderer:build    # Build Next.js app
-npm run renderer:export   # Export to static HTML
-npm run electron:build    # Compile TypeScript for Electron
-
-# Package distributable
-npm run package  # Creates installer in dist/ directory
+# This runs: cd renderer && npm run build
+# Output: renderer/.next/ (static export)
 ```
 
 ### Code Quality
 ```bash
-# Lint renderer code (uses ESLint 9)
+# Lint code
 npm run lint
-# or
-npm run renderer:lint
+# This runs: cd renderer && npm run lint
+# Uses ESLint 9 with Next.js config
 ```
 
-### Cleanup
-```bash
-# Remove all build artifacts
-npm run clean
-```
-
-### Working in Subdirectories
-The project has a monorepo-like structure:
-- Root `package.json` orchestrates Electron + renderer builds
-- `renderer/` directory has its own `package.json` for Next.js dependencies
-- When adding renderer dependencies: `cd renderer && npm install <package>`
-- When adding Electron dependencies: `npm install <package>` (in root)
+### Project Structure
+The project has a simple structure:
+- Root `package.json` is a thin wrapper that delegates to `renderer/`
+- All actual code lives in `renderer/` directory
+- When adding dependencies: `cd renderer && npm install <package>`
+- Root scripts just forward to renderer scripts
 
 ## Architecture
 
-### Project Structure
+### Directory Structure
 ```
 ocr/
-├── electron/              # Electron main process code
-│   ├── main.ts           # Entry point, window creation, IPC handlers
-│   ├── preload.ts        # Context bridge exposing desktopAPI to renderer
-│   └── storage/          # Data persistence layer
-│       ├── history.ts    # SQLite-based OCR history management
-│       ├── settings.ts   # App settings persistence
-│       └── settingsSchema.ts  # Settings type definitions
-├── renderer/             # Next.js frontend (runs in Electron renderer)
-│   ├── app/             # Next.js App Router pages
-│   │   ├── page.tsx     # Main OCR interface
-│   │   └── layout.tsx   # Root layout with global styles
-│   ├── components/      # React components
-│   │   ├── ImagePreview.tsx    # Left pane: shows source/processed image
-│   │   ├── TextPanel.tsx       # Right pane: OCR result text
-│   │   ├── ActionBar.tsx       # Bottom toolbar with action buttons
-│   │   ├── history/HistoryDrawer.tsx  # History sidebar
-│   │   └── settings/SettingsSheet.tsx # Settings dialog
-│   ├── lib/             # Core business logic
-│   │   ├── ocr.ts       # Tesseract worker, OpenCV preprocessing
-│   │   └── pdf.ts       # PDF first-page rendering
-│   ├── store/           # Zustand state management
-│   │   └── app-store.ts # Main application state
-│   └── types/           # TypeScript type definitions
-│       └── desktop.d.ts # Window.desktopAPI type declarations
-└── dist-electron/       # Compiled Electron code (gitignored)
-└── renderer/out/        # Exported Next.js static files (gitignored)
+├── renderer/              # Next.js application (all code lives here)
+│   ├── app/              # Next.js App Router pages
+│   │   ├── page.tsx      # Main OCR interface
+│   │   ├── layout.tsx    # Root layout with global styles
+│   │   └── globals.css   # CSS custom properties, theme
+│   ├── components/       # React components
+│   │   ├── UploadZone.tsx       # Initial screen with clipboard/file buttons
+│   │   ├── ImagePreview.tsx     # Left pane: shows source image
+│   │   ├── TextPanel.tsx        # Right pane: OCR result text
+│   │   ├── PdfPageNavigator.tsx # PDF page navigation controls
+│   │   ├── history/HistoryDrawer.tsx    # History sidebar
+│   │   ├── settings/SettingsSheet.tsx   # Settings dialog
+│   │   └── settings/LanguageOverlay.tsx # Language selection
+│   ├── lib/              # Core business logic
+│   │   ├── ocr.ts        # Tesseract worker, OpenCV preprocessing
+│   │   ├── pdf.ts        # PDF.js rendering (multi-page support)
+│   │   ├── web-api.ts    # Browser API wrappers (clipboard, file I/O)
+│   │   ├── indexeddb.ts  # IndexedDB manager for history/images
+│   │   └── languages.ts  # Language code utilities
+│   ├── store/            # Zustand state management
+│   │   └── app-store.ts  # Main application state
+│   ├── types/            # TypeScript definitions
+│   │   └── desktop.d.ts  # Shared type definitions
+│   └── public/           # Static assets
+│       └── tessdata/     # Tesseract language training data
+└── .github/workflows/    # GitHub Actions for deployment
+    └── deploy.yml        # Auto-deploy to GitHub Pages
 ```
-
-### Electron Process Architecture
-
-**Main Process (`electron/main.ts`):**
-- Creates BrowserWindow and loads renderer HTML
-- Registers IPC handlers for file system, clipboard, history, settings
-- Manages SQLite database and image storage in `userData` directory
-- Handles image file lifecycle (save clipboard images, cleanup on delete)
-
-**Preload Script (`electron/preload.ts`):**
-- Exposes `window.desktopAPI` to renderer via `contextBridge`
-- Type-safe bridge between renderer and main process
-- All IPC communication flows through this API
-
-**Renderer Process (`renderer/`):**
-- Next.js app running in Electron's BrowserWindow
-- Uses `window.desktopAPI` to interact with Electron features
-- Completely client-side rendered (Next.js export mode)
 
 ### Data Flow
 
-1. **User triggers OCR** (clipboard button / file dialog / drag & drop)
-2. **Renderer** calls `desktopAPI.getClipboardImage()`, `desktopAPI.openImageDialog()`, or `desktopAPI.processDroppedFile(filePath)`
-3. **Main process** returns image data URL + file path
-4. **Renderer** runs OpenCV preprocessing in browser (WASM)
-5. **Renderer** runs Tesseract OCR in Web Worker
-6. **Renderer** calls `desktopAPI.saveHistory()` with results
-7. **Main process** persists to SQLite, broadcasts `history:updated` event
-8. **Renderer** refreshes history list via IPC listener
+**Image Processing Flow:**
+1. **User triggers OCR** (clipboard button / file select / drag & drop)
+2. **Browser API** reads image data (Clipboard API / FileReader API)
+3. **webAPI.ts** saves image to IndexedDB, returns data URL + file path
+4. **app-store.ts** calls `processImage()` action
+5. **ocr.ts** preprocesses image with OpenCV (WASM)
+6. **ocr.ts** runs Tesseract OCR in Web Worker
+7. **app-store.ts** normalizes text based on settings
+8. **indexeddb.ts** persists result to history
+9. **UI updates** with text result and confidence score
 
-### PDF Processing (`renderer/lib/pdf.ts`)
+**PDF Processing Flow:**
+1. User drops/selects PDF file
+2. **pdf.ts** uses PDF.js to get metadata (page count)
+3. **pdf.ts** renders page 1 as PNG image
+4. Full PDF base64 stored in `SourceImage.pdfData` for navigation
+5. OCR runs on rendered image
+6. User can navigate pages → re-render → re-run OCR
 
-**Multi-page PDF Support:**
-- `getPdfInfo(base64)` - Retrieves PDF metadata (page count)
-- `renderPdfPage(base64, pageNumber)` - Renders specific page as PNG image
+### Storage Architecture
+
+**IndexedDB** (`lib/indexeddb.ts`):
+- **history** object store: OCR results with metadata
+  - Schema: `{ id, createdAt, imagePath, textResult, engine, lang, confidence }`
+  - Index on `createdAt` for chronological retrieval
+- **images** object store: Image data URLs
+  - Schema: `{ path, dataUrl, createdAt }`
+  - Images stored as base64 data URLs
+- **settings** object store: Key-value pairs (currently unused)
+
+**localStorage** (`store/app-store.ts`):
+- Settings stored as JSON under key `ocr-app-settings`
+- Schema defined in `types/desktop.d.ts`
+- Includes: language, autoCopy, autoProcessClipboard, textNormalization
+
+### OCR Pipeline (`lib/ocr.ts`)
+
+**1. Preprocessing** (`preprocessImage`):
+- Convert to grayscale
+- Gaussian blur (noise reduction)
+- Histogram equalization (contrast enhancement)
+- Adaptive thresholding (binarization)
+- Optional deskewing via `minAreaRect`
+- Invert if background is darker than foreground
+
+**2. Recognition** (`runOCR`):
+- Creates persistent Tesseract worker (reused across runs)
+- Loads language on demand (default: `jpn+eng`)
+- PSM mode: `SINGLE_BLOCK` with `preserve_interword_spaces`
+- Returns `{ text, confidence }`
+
+**3. Text Normalization** (`app-store.ts`):
+- Remove line breaks (optional)
+- Collapse whitespace (optional)
+- Trim whitespace (optional)
+
+### PDF Multi-Page Support (`lib/pdf.ts`)
+
+**API:**
+- `getPdfInfo(base64)` - Get PDF metadata (page count)
+- `renderPdfPage(base64, pageNumber)` - Render specific page as PNG
 - `renderPdfFirstPage(base64)` - Convenience wrapper for page 1
 
-**PDF Navigation:**
-- When PDF is loaded, `SourceImage` stores:
-  - `pdfData` - Base64 encoded PDF for re-rendering pages
-  - `currentPage` - Currently displayed page number
-  - `totalPages` - Total number of pages in PDF
-- `PdfPageNavigator` component shows page controls when viewing PDFs
-- `changePdfPage(pageNumber)` action re-renders selected page and re-runs OCR
-- Each page change saves a new rendered image to disk
-
-### OCR Pipeline (`renderer/lib/ocr.ts`)
-
-1. **Preprocessing** (`preprocessImage`):
-   - Convert to grayscale
-   - Gaussian blur (reduce noise)
-   - Histogram equalization (enhance contrast)
-   - Adaptive thresholding (binarization)
-   - Optional deskewing via `minAreaRect`
-   - Invert if background is darker than foreground
-
-2. **Recognition** (`runOCR`):
-   - Uses persistent Tesseract worker (reused across OCR runs)
-   - Language loaded on demand (default: `jpn+eng`)
-   - PSM mode: `SINGLE_BLOCK` with `preserve_interword_spaces`
-   - Returns `{ text, confidence }`
-
-3. **Text Normalization** (`app-store.ts`):
-   - Remove line breaks (optional)
-   - Collapse whitespace (optional)
-   - Trim (optional)
-
-### Storage Schema
-
-**SQLite Table** (`electron/storage/history.ts`):
-```sql
-CREATE TABLE history (
-  id INTEGER PRIMARY KEY,
-  created_at TEXT DEFAULT (datetime('now')),
-  image_path TEXT NOT NULL,  -- Absolute path in userData/images/
-  text_result TEXT NOT NULL,
-  engine TEXT DEFAULT 'local',
-  lang TEXT DEFAULT 'jpn+eng',
-  confidence REAL
-)
-```
-
-**Settings** (`electron/storage/settings.ts`):
-- Stored as JSON file in `userData/settings.json`
-- Schema defined in `settingsSchema.ts`
-- Includes: language, text normalization options, auto behaviors
-
-**Image Files**:
-- Saved in `userData/images/` directory
-- Naming: `clipboard-{timestamp}-{id}.png` or `import-{timestamp}-{id}.{ext}`
-- Automatically deleted when history entry is removed
+**Navigation:**
+- PDF base64 stored in `SourceImage.pdfData`
+- `PdfPageNavigator` component shows page controls
+- `changePdfPage(pageNumber)` re-renders selected page and re-runs OCR
+- Each rendered page saved to IndexedDB as separate image
 
 ## Key Conventions
-
-### IPC Handler Naming
-- Pattern: `{domain}:{action}` (e.g., `clipboard:get-image`, `history:save`)
-- Main process registers handlers in `registerIpcHandlers()`
-- Renderer invokes via `ipcRenderer.invoke(channel, ...args)`
-- Events use same namespace (e.g., `history:updated` broadcast)
 
 ### State Management
 - Single Zustand store in `renderer/store/app-store.ts`
@@ -200,10 +164,19 @@ CREATE TABLE history (
 - Components are thin presentation layers
 - Use `useShallow` selector for optimized re-renders
 
+### Browser API Usage
+- **Clipboard API**: `navigator.clipboard.read()` for images, `.writeText()` for text
+- **FileReader API**: Convert File/Blob to data URLs
+- **IndexedDB**: All persistent storage (history, images)
+- **localStorage**: Settings only
+- **Web Workers**: Tesseract runs in background thread
+- **WASM**: OpenCV.js and Tesseract.js both use WebAssembly
+
 ### TypeScript Patterns
-- Shared types exported from `electron/preload.ts` (HistoryEntry, AppSettings)
-- Renderer types in `renderer/types/desktop.d.ts` augment `Window` interface
-- Main process types in `electron/storage/` for database models
+- Shared types in `renderer/types/desktop.d.ts`
+- `AppSettings`, `HistoryEntry`, `HistoryInput` interfaces
+- `SourceImage` type includes PDF navigation state
+- No Electron types - pure web types only
 
 ### Styling
 - **Design System**: Sharp tech-focused cyberpunk aesthetic with neon colors
@@ -211,102 +184,106 @@ CREATE TABLE history (
   - Primary accent: Cyan (`#00ffff`)
   - Secondary accent: Pink (`#ff0080`) - used sparingly for highlights
   - Background: Pure black (`#000000`) with subtle gradients
-- **Dark Mode Only**: App is locked to dark mode (theme switching removed)
+- **Dark Mode Only**: App is locked to dark mode
 - **CSS Architecture**: Tailwind v4 with CSS custom properties
 - **Typography**: JetBrains Mono for monospace, Manrope for sans-serif
-- All colors use semantic tokens via CSS variables (`--primary`, `--accent-pink`, `--surface`, etc.)
+- All colors use semantic tokens via CSS variables (`--accent-base`, `--accent-pink`, `--surface`, etc.)
 - Consistent use of sharp edges, no rounded corners, monospace fonts for tech aesthetic
 
-## UI Design Conventions
-
-### Visual Language
-- **Sharp, tech-focused aesthetic**: No rounded corners, use sharp angles and straight edges
-- **Neon cyberpunk theme**: Black backgrounds with cyan and pink neon accents
-- **Monospace typography**: Use `font-mono` for technical elements (file sizes, metadata, upload zones)
-- **Uppercase labels**: Technical labels and buttons often use uppercase with letter-spacing
-- **Minimal use of pink**: Pink (`--accent-pink`) is reserved for specific highlights:
-  - O, C, R letters in "OPTICAL CHARACTER RECOGNITION" header
-  - Animated dots in processing overlay
-  - Success message borders/text
-- **Cyan as primary**: All other interactive elements use cyan (`--accent-base`)
-
 ### CSS Custom Properties
-All colors are defined in `renderer/app/globals.css`:
+All colors defined in `renderer/app/globals.css`:
 ```css
 --background: #000000;           /* Pure black */
 --accent-base: #00ffff;          /* Cyan - primary accent */
 --accent-pink: #ff0080;          /* Pink - secondary accent (use sparingly) */
 --text-primary: #ffffff;         /* White text */
---text-secondary: rgba(255, 255, 255, 0.85);  /* High contrast gray */
---text-muted: rgba(255, 255, 255, 0.65);      /* Medium contrast gray */
---text-tertiary: rgba(255, 255, 255, 0.45);   /* Low contrast gray */
+--text-secondary: rgba(255, 255, 255, 0.85);
+--text-muted: rgba(255, 255, 255, 0.65);
+--text-tertiary: rgba(255, 255, 255, 0.45);
 --glow: 0 0 20px rgba(0, 255, 255, 0.3);      /* Cyan glow effect */
 --glow-pink: 0 0 20px rgba(255, 0, 128, 0.4); /* Pink glow effect */
 ```
 
 ### Animation Patterns
-- **Grid animations**: Moving grid backgrounds for loading states (`@keyframes moveGrid`)
-- **Pulse effects**: Fading dots for processing indicators (`@keyframes fadeIn`)
-- **Staggered delays**: Sequential animations with 0.2s intervals for visual interest
-- **Subtle motion**: Animations should be smooth and not overwhelming (30s durations for ambient effects)
+- **Grid animations**: Moving grid backgrounds (`@keyframes moveGrid`)
+- **Pulse effects**: Fading dots for processing (`@keyframes fadeIn`)
+- **Staggered delays**: 0.2s intervals for sequential animations
+- **Subtle motion**: 30s durations for ambient effects
 
 ## Common Development Tasks
 
-### Adding New IPC Handlers
+### Adding New Language Support
 
-1. **Define handler in `electron/main.ts`:**
-   ```typescript
-   ipcMain.handle('your:action', async (_event, arg) => {
-     // your logic
-     return result;
-   });
-   ```
+1. **Download Tesseract training data:**
+   - Get `.traineddata` files from https://github.com/naptha/tessdata
+   - Place in `renderer/public/tessdata/`
 
-2. **Add to preload API in `electron/preload.ts`:**
-   ```typescript
-   export interface DesktopAPI {
-     yourAction(arg: string): Promise<Result>;
-   }
-   const desktopAPI: DesktopAPI = {
-     yourAction: (arg) => ipcRenderer.invoke('your:action', arg)
-   };
-   ```
+2. **Update language options:**
+   - Edit `renderer/lib/languages.ts`
+   - Add language code and label to `LANGUAGE_OPTIONS`
 
-3. **Use in renderer:**
-   ```typescript
-   const result = await window.desktopAPI.yourAction('foo');
-   ```
+3. **Test:**
+   - Select language in settings
+   - Verify OCR works with new language
 
 ### Modifying OCR Settings
 
-- Schema: `electron/storage/settingsSchema.ts`
-- UI: `renderer/components/settings/SettingsSheet.tsx`
-- Persistence: `electron/storage/settings.ts`
-- Application: `renderer/store/app-store.ts` (in `processImage` function)
+- **Schema**: `renderer/types/desktop.d.ts` (AppSettings interface)
+- **UI**: `renderer/components/settings/SettingsSheet.tsx`
+- **Persistence**: `renderer/store/app-store.ts` (loadSettings/saveSettings)
+- **Application**: `renderer/store/app-store.ts` (processImage function)
 
-### Adding Tesseract Languages
+### Adding New Browser API Features
 
-1. Download `.traineddata` files to `renderer/public/tessdata/`
-2. Update `settingsSchema.ts` language options
-3. Ensure correct `langPath` in `renderer/lib/ocr.ts` (already set to `/tessdata`)
+1. **Add wrapper in `renderer/lib/web-api.ts`:**
+   ```typescript
+   export async function yourFeature(): Promise<Result> {
+     // Use browser APIs
+     const data = await navigator.something.doThing();
+     return processedData;
+   }
+   ```
+
+2. **Call from store action in `renderer/store/app-store.ts`:**
+   ```typescript
+   yourAction: async () => {
+     const result = await webAPI.yourFeature();
+     set({ someState: result });
+   }
+   ```
+
+3. **Connect to UI component**
 
 ### Debugging
 
-- **Development mode**: Electron opens with DevTools detached
-- **Main process logs**: Check terminal running `npm run dev`
-- **Renderer logs**: Check DevTools Console
-- **IPC tracing**: Add `console.log` in preload or main IPC handlers
-- **OCR progress**: Tracked via `logger` callback in `ocr.ts`
+- **Development mode**: Open http://localhost:3000
+- **Browser DevTools**: Console for logs, Application tab for IndexedDB/localStorage
+- **Network tab**: Check if Tesseract/OpenCV WASM files load correctly
+- **React DevTools**: Inspect Zustand state and component re-renders
+- **OCR progress**: Logged to console via `runOCR()` logger callback
+- **Storage inspection**: Application → IndexedDB → ocr-app-db
 
 ## Important Notes
 
-- **File paths**: All paths in Electron APIs are absolute, never relative
-- **Data URLs**: Images pass between processes as base64 data URLs
-- **Worker lifecycle**: Tesseract worker is created once and reused (don't terminate)
-- **OpenCV loading**: WASM module loads asynchronously; `waitForOpenCV()` handles timing
-- **SQLite transactions**: better-sqlite3 is synchronous; no async needed
-- **History limits**: Enforced automatically via `setMaxEntries()` after each insert
-- **Drag & drop**: In Electron, File objects have a `path` property that provides absolute file paths. Type it as `File & { path: string }` to avoid TypeScript errors
-- **Drag overlay**: Visual feedback is shown via `isDragging` state when files are dragged over the main element
-- **Multi-page PDFs**: Full PDF data is stored in `SourceImage.pdfData` to enable page navigation without re-uploading. Each page change re-renders the selected page and performs OCR
-- **PDF memory**: Large PDFs keep full file in memory as base64. Consider adding cleanup when switching to non-PDF images
+- **No server required**: Everything runs client-side in the browser
+- **Data privacy**: Images and OCR results never leave the user's device
+- **WASM loading**: OpenCV and Tesseract load asynchronously; proper timing handled
+- **Clipboard permissions**: User must grant permission on first use
+- **File drag & drop**: Native HTML5 drag & drop API used
+- **PDF memory**: Full PDF kept in memory as base64 during session (consider cleanup for large PDFs)
+- **Browser compatibility**: Requires modern browser with Clipboard API, IndexedDB, WASM support
+- **Offline support**: After first load, app can work offline (service worker not yet implemented)
+- **GitHub Pages deployment**: App is deployed via GitHub Actions to https://yukihirosakuda.github.io/ocr/
+- **Static export**: Next.js configured for static export (no Node.js server needed)
+
+## Deployment
+
+The app auto-deploys to GitHub Pages when changes are pushed to `main`:
+
+1. `.github/workflows/deploy.yml` runs on push
+2. Builds Next.js app (`npm run build`)
+3. Exports static files
+4. Deploys to GitHub Pages
+5. Available at: https://yukihirosakuda.github.io/ocr/
+
+See `DEPLOY.md` for detailed deployment instructions and troubleshooting.

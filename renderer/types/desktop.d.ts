@@ -6,6 +6,7 @@ export interface TextNormalizationSetting {
 
 export interface AppSettings {
   language: string;
+  psmMode?: string; // Page Segmentation Mode for Tesseract
   autoCopy: boolean;
   autoProcessClipboard: boolean;
   textNormalization: TextNormalizationSetting;

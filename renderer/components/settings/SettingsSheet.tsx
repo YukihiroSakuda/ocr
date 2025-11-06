@@ -157,6 +157,41 @@ export const SettingsSheet = ({
                   })
                 }
               />
+
+              {/* PSM Mode Selector */}
+              <div className="border border-[var(--border)] bg-[var(--surface)] px-4 py-3">
+                <label className="flex flex-col gap-2">
+                  <span className="flex flex-col gap-1">
+                    <span className="font-mono text-[11px] font-semibold uppercase tracking-wide text-[var(--text-primary)]">
+                      OCR Mode (PSM)
+                    </span>
+                    <span className="font-mono text-[9px] uppercase tracking-wide text-[var(--text-tertiary)]">
+                      Page Segmentation Mode
+                    </span>
+                  </span>
+                  <select
+                    value={settings.psmMode || 'SPARSE_TEXT'}
+                    onChange={(e) => onUpdate({ psmMode: e.target.value })}
+                    className="border border-[var(--control-border)] bg-[var(--background)] px-3 py-2 font-mono text-[11px] uppercase tracking-wide text-[var(--text-primary)] transition hover:border-[var(--accent-base)] focus:border-[var(--accent-base)] focus:outline-none"
+                  >
+                    <option value="AUTO">Auto (汎用)</option>
+                    <option value="SPARSE_TEXT">Sparse Text (疎らなテキスト)</option>
+                    <option value="SINGLE_BLOCK">Single Block (単一ブロック)</option>
+                    <option value="SINGLE_LINE">Single Line (1行)</option>
+                    <option value="SINGLE_WORD">Single Word (1単語)</option>
+                    <option value="SINGLE_COLUMN">Single Column (縦1列)</option>
+                  </select>
+                  <span className="font-mono text-[9px] text-[var(--text-tertiary)]">
+                    {settings.psmMode === 'AUTO' && '自動検出 - 汎用的だが精度が落ちる場合あり'}
+                    {settings.psmMode === 'SPARSE_TEXT' && 'スクリーンショット向け（推奨）'}
+                    {settings.psmMode === 'SINGLE_BLOCK' && '単一テキストブロック - 複数行認識に弱い'}
+                    {settings.psmMode === 'SINGLE_LINE' && '1行テキスト専用'}
+                    {settings.psmMode === 'SINGLE_WORD' && '1単語専用'}
+                    {settings.psmMode === 'SINGLE_COLUMN' && '縦1列のテキスト'}
+                    {!settings.psmMode && 'スクリーンショット向け（推奨）'}
+                  </span>
+                </label>
+              </div>
             </>
           )}
         </div>

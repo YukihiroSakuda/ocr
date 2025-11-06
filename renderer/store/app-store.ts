@@ -68,7 +68,8 @@ const normalizeText = (text: string, settings: AppSettings['textNormalization'])
 
 // Default settings
 const DEFAULT_SETTINGS: AppSettings = {
-  language: 'jpn+eng',
+  language: 'jpn', // Changed from 'jpn+eng' for better Japanese OCR accuracy
+  psmMode: 'SPARSE_TEXT', // Page Segmentation Mode
   autoCopy: false,
   autoProcessClipboard: false,
   textNormalization: {
@@ -375,7 +376,7 @@ const processImage = async (
   });
 
   try {
-    const result = await runOCR(image.dataUrl, settings.language);
+    const result = await runOCR(image.dataUrl, settings.language, settings.psmMode);
     const normalizedText = normalizeText(result.text, settings.textNormalization);
 
     set({
